@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Agro Manager Beta</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0; font-family: 'Poppins', sans-serif;
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1000');
+            background-size: cover; background-position: center;
+            height: 100vh; display: flex; align-items: center; justify-content: center;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            width: 85%; max-width: 350px; border-radius: 20px;
+            padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center;
+        }
+        .tabs { display: flex; margin-bottom: 20px; border-bottom: 1px solid #eee; }
+        .tab { flex: 1; padding: 10px; cursor: pointer; color: #999; font-weight: 600; }
+        .tab.active { color: #2e7d32; border-bottom: 3px solid #2e7d32; color: #2e7d32; }
+        
+        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #2e7d32; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <i class="fas fa-tractor" style="font-size: 45px; color: #2e7d32; margin-bottom: 10px;"></i>
+        <h2>Agro Manager</h2>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="mudar('login')">Entrar</div>
+            <div class="tab" onclick="mudar('registro')">Criar Conta</div>
+        </div>
+
+        <form id="form-login" action="/login" method="POST">
+            <input type="hidden" name="acao" value="login">
+            <input type="text" name="nome" placeholder="Usuário" required>
+            <input type="password" name="senha" placeholder="Senha" required>
+            <button type="submit">ACESSAR</button>
+        </form>
+
+        <form id="form-registro" action="/login" method="POST" class="hidden">
+            <input type="hidden" name="acao" value="registro">
+            <input type="text" name="nome" placeholder="Criar Usuário" required>
+            <input type="email" name="email" placeholder="E-mail">
+            <input type="password" name="senha" placeholder="Criar Senha" required>
+            <label style="display:block; text-align:left; font-size:12px; color:#666; margin-bottom:5px;">Dificuldade</label>
+            <select name="dificuldade">
+                <option value="1">Fácil (Começa com 100k - Preços Baixos)</option>
+                <option value="2" selected>Médio (Começa com 50k - Normal)</option>
+                <option value="3">Difícil (Começa com 20k - Preços Altos)</option>
+            </select>
+            <button type="submit">CADASTRAR</button>
+        </form>
+    </div>
+
+    <script>
+        function mudar(aba) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            if(aba === 'login') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('form-login').classList.remove('hidden');
+                document.getElementById('form-registro').classList.add('hidden');
+            } else {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('form-login').classList.add('hidden');
+                document.getElementById('form-registro').classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

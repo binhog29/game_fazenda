@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <title>Leilão Global</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilo.css') }}">
+    
+    <style>
+        /* Fundo puxando da pasta IMG nova */
+        body { background: url('/static/img/bg_pasto.jpg') fixed center/cover; }
+        
+        .market-container { max-width: 600px; margin: 20px auto; padding-bottom: 80px; }
+        .market-header { text-align: center; background: rgba(255,255,255,0.95); padding: 20px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .back-btn { position: absolute; top: 20px; left: 20px; background: #2e7d32; color: white; padding: 10px 15px; border-radius: 50px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 5px rgba(0,0,0,0.2); }
+        
+        .offer-card { 
+            background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; 
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-left: 5px solid #ff9800;
+        }
+        .offer-img { width: 70px; height: 70px; object-fit: contain; margin-right: 15px; }
+        .offer-info { flex: 1; }
+        .offer-price { font-size: 18px; color: #2e7d32; font-weight: 900; }
+        .seller-badge { background: #eee; padding: 2px 8px; border-radius: 4px; font-size: 10px; color: #555; }
+    </style>
+</head>
+<body>
+
+    <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> Mapa</a>
+
+    <div class="market-container">
+        <div class="market-header">
+            <h2 style="margin:0; color:#2e7d32;">📢 Leilão Global</h2>
+            <p style="color:#666; font-size:14px;">Compre gado de outros jogadores.</p>
+            <div class="money-badge" style="display:inline-block; margin-top:10px;">
+                Seu Saldo: R$ {{ user.dinheiro|int }}
+            </div>
+        </div>
+
+        {% if not anuncios %}
+            <div style="text-align:center; background:rgba(255,255,255,0.9); padding:40px; border-radius:15px;">
+                <i class="fas fa-box-open" style="font-size:50px; color:#ccc;"></i>
+                <p style="color:#777;">Nenhuma oferta no mercado hoje.</p>
+            </div>
+        {% endif %}
+
+        {% for a in anuncios %}
+        <div class="offer-card">
+            <img src="/static/img/{{ a.animal.raca|lower }}.png" class="offer-img" onerror="this.src='/static/img/nelore.png'">
+            
+            <div class="offer-info">
+                <div style="font-weight:bold; font-size:16px;">{{ a.animal.raca }} <small>({{ a.animal.sexo }})</small></div>
+                <div style="font-size:12px; color:#555;">{{ a.animal.peso }}@ | {{ a.animal.fase }}</div>
+                <div class="seller-badge"><i class="fas fa-user"></i> {{ a.vendedor.nome }}</div>
+            </div>
+
+            <div style="text-align:right;">
+                <div class="offer-price">R$ {{ a.valor }}</div>
+                
+                {% if a.vendedor_id == user.id %}
+                    <button class="btn-small" style="background:#ddd; color:#555; margin-top:5px; font-size:10px;">SEU ANÚNCIO</button>
+                    <button class="btn-small" style="background:#d32f2f; margin-top:5px;" onclick="cancelar({{ a.id }})">🗑️</button>
+                {% else %}
+                    {% if user.dinheiro >= a.valor %}
+                        <button class="btn-small" style="background:#2e7d32; margin-top:5px;" onclick="comprar({{ a.id }})">COMPRAR</button>
+                    {% else %}
+                        <button class="btn-small" style="background:#ccc; cursor:not-allowed; margin-top:5px;">SEM SALDO</button>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function comprar(id) {
+            if(!confirm("Confirmar a compra?")) return;
+            fetch(`/api/mercado/comprar/${id}`, { method: 'POST' })
+            .then(r => r.json())
+            .then(d => {
+                if(d.sucesso) {
+                    alert("✅ Compra realizada! O animal foi para sua fazenda.");
+                    window.location.href = "/";
+                } else {
+                    alert("❌ Erro: " + d.erro);
+                }
+            });
+        }
+
+        function cancelar(id) {
+            if(!confirm("Remover anúncio?")) return;
+            fetch(`/api/mercado/cancelar/${id}`, { method: 'POST' })
+            .then(r => location.reload());
+        }
+    </script>
+</body>
+</html>

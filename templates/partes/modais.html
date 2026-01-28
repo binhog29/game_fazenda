@@ -1,0 +1,159 @@
+<div id="modal-loja-compra" class="modal-overlay">
+    <div class="sheet">
+        <div class="sheet-head">
+            <h3 id="loja-item-nome" style="margin:0; color:#2e7d32;">Comprar Item</h3>
+            <i class="fas fa-times" onclick="document.getElementById('modal-loja-compra').style.display='none'" style="font-size:20px; color:#aaa;"></i>
+        </div>
+        
+        <p style="color:#555; font-size:14px;">Quantas unidades deseja adquirir?</p>
+        <input type="number" id="loja-qtd" placeholder="Quantidade" value="1" min="1" style="font-size:16px;">
+        
+        <button class="btn-small" style="padding:12px; margin-top:10px; font-size:14px;" onclick="confirmarCompraLoja()">✅ CONFIRMAR E PAGAR</button>
+        <button class="btn-small" style="background:#eee; color:#333; margin-top:10px;" onclick="document.getElementById('modal-loja-compra').style.display='none'">CANCELAR</button>
+    </div>
+</div>
+
+<div id="modal-pasto" class="modal-overlay" onclick="if(event.target==this) fecharModal('pasto')">
+    <div class="sheet">
+        <div class="sheet-head">
+            <h2 id="p-nome" style="margin:0; color:#2e7d32;">...</h2>
+            <div style="display:flex; gap:10px;">
+                {% if not visitante %}<i class="fas fa-pen" onclick="renomearPasto()" style="font-size:20px; color:gray"></i>{% endif %}
+                <i class="fas fa-times" onclick="fecharModal('pasto')" style="font-size:24px; color:#aaa;"></i>
+            </div>
+        </div>
+        <div id="p-actions"></div>
+        
+        <div id="buy-form" class="buy-form">
+            <h4 style="margin:0 0 10px 0; color:#2e7d32;">🐂 Comprar Animais / Peixes</h4>
+            
+            <label style="font-weight:bold;">Selecione a Espécie:</label>
+<select id="b-raca" style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px; background:#f9f9f9;">
+    <optgroup label="🐄 BOVINOS">
+        <option value="nelore">Nelore</option>
+        <option value="angus">Angus</option>
+        <option value="girolando">Girolando</option>
+        <option value="guzera">Guzerá</option>
+        <option value="brahman">Brahman</option>
+    </optgroup>
+    <optgroup label="🐖 PEQUENOS ANIMAIS">
+        <option value="porco">Porco</option>
+        <option value="ovelha">Ovelha</option>
+        <option value="cabra">Cabra</option>
+        <option value="cavalo">Cavalo</option>
+    </optgroup>
+    <optgroup label="🐓 AVES">
+        <option value="galinha">Galinha</option>
+        <option value="pato">Pato</option>
+        <option value="peru">Peru</option>
+    </optgroup>
+    <optgroup label="🐟 PEIXES (PISCICULTURA)">
+        <option value="tambaqui">Tambaqui</option>
+        <option value="pirarucu">Pirarucu</option>
+        <option value="pacu">Pacu</option>
+        <option value="matrinxa">Matrinxã</option>
+        <option value="jaraqui">Jaraqui</option>
+        <option value="curimata">Curimatã</option>
+        <option value="surubim">Surubim</option>
+        <option value="pintado">Pintado</option>
+        <option value="cachara">Cachara</option>
+        <option value="tucunare">Tucunaré</option>
+        <option value="piau">Piau</option>
+    </optgroup>
+</select>
+
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+                <div>
+                    <label style="font-size:10px;">Sexo</label>
+                    <select id="b-sexo"><option value="M">Macho</option><option value="F">Fêmea</option></select>
+                </div>
+                <div>
+                    <label style="font-size:10px;">Fase</label>
+                    <select id="b-fase"><option value="filhote">Filhote</option><option value="adulto">Adulto</option></select>
+                </div>
+            </div>
+            
+            <div style="margin-top:5px;">
+                <label style="font-size:10px;">Quantidade</label>
+                <input type="number" id="b-qtd" placeholder="Qtd" value="1" style="width:100%;">
+            </div>
+
+            <button class="btn-small" style="padding:12px; margin-top:10px; width:100%;" onclick="confirmarCompraGado()">✅ CONFIRMAR COMPRA</button>
+        </div>
+
+        <div id="p-gado-list" style="margin-top:15px;"></div>
+    </div>
+</div>
+
+<div id="modal-curral" class="modal-overlay" onclick="if(event.target==this) fecharModal('curral')">
+    <div class="sheet">
+        <div class="sheet-head"><h2>🐄 Curral</h2><i class="fas fa-times" onclick="fecharModal('curral')" style="font-size:24px; color:#aaa;"></i></div>
+        <p style="font-size:12px; color:#777; margin-bottom:15px;">Toque no animal para ver o GTA ou use os botões rápidos.</p>
+        {% for boi in gado_curral %}
+        <div class="animal-row" onclick="verGTA({{ boi.id }}, '{{ boi.raca }}', '{{ boi.sexo }}', {{ boi.idade_meses }}, {{ boi.peso }}, '{{ boi.origem }}', {{ 'true' if boi.vacinado else 'false' }})">
+            <div class="animal-info"><b>{{ boi.raca|upper }}</b><small>{{ boi.fase }} | {{ boi.peso }}@</small>
+
+<div style="width: 100%; background: #ddd; height: 8px; border-radius: 4px; margin: 5px 0; overflow: hidden; border: 1px solid #ccc;">
+    <div style="width: {{ boi.saude if boi.saude else 100 }}%; background: #ff5252; height: 100%;"></div>
+</div>
+<div style="display: flex; justify-content: space-between; font-size: 9px; color: #666;">
+    <span>Saúde: {{ boi.saude if boi.saude else 100 }}%</span>
+    <span>Peso Ideal</span>
+</div>
+            <div style="display:flex; gap:5px;">
+                <button class="btn-small" style="background:#e1f5fe; color:#0277bd; width:auto; box-shadow:none;" onclick="event.stopPropagation(); manejo('vacinar', {{ boi.id }})">💉</button>
+                <button class="btn-small" style="background:#fff3e0; color:#e65100; width:auto; box-shadow:none;" onclick="event.stopPropagation(); manejo('soltar_pasto', {{ boi.id }})">🏇</button>
+            </div>
+        </div>
+        {% endfor %}
+        {% if gado_curral|length == 0 %}<div style="text-align:center; padding:30px; color:#aaa;">Curral vazio. Traga animais dos pastos.</div>{% endif %}
+    </div>
+</div>
+
+<div id="modal-gta" class="modal-overlay" style="z-index:1100;">
+    <div class="sheet">
+        <div class="gta-paper">
+            <div style="text-align:center; border-bottom:2px dashed #5d4037; margin-bottom:10px; font-weight:bold;">GTA - GUIA DE TRÂNSITO</div>
+            <p>Raça: <b id="gta-raca"></b> | Sexo: <b id="gta-sexo"></b></p>
+            <p>Idade: <b id="gta-idade"></b> meses</p>
+            <p>Peso: <b id="gta-peso"></b>@</p>
+            <p>Origem: <b id="gta-origem"></b></p>
+            <p>Vacinação: <span id="gta-vacina"></span></p>
+        </div>
+        <button class="btn-small" style="background:#d32f2f; margin-bottom:10px;" onclick="venderFrigorifico()">🚚 VENDER P/ FRIGORÍFICO</button>
+        <button class="btn-small" style="background:#0288d1; margin-bottom:10px;" onclick="manejo('vacinar', animalAtual)">💉 VACINAR AGORA ($50)</button>
+        <button class="btn-small" style="background:#757575" onclick="document.getElementById('modal-gta').style.display='none'">FECHAR DOCUMENTO</button>
+        <button class="btn-small" style="background:#ff9800; margin-bottom:10px;" onclick="abrirModalVenda()">💰 ANUNCIAR NO MERCADO</button>
+    </div>
+</div>
+
+<div id="modal-venda" class="modal-overlay">
+    <div class="sheet">
+        <div class="sheet-head">
+            <h3 style="margin:0; color:#e65100;">💰 Anunciar Venda</h3>
+            <i class="fas fa-times" onclick="document.getElementById('modal-venda').style.display='none'" style="font-size:20px;"></i>
+        </div>
+        
+        <p style="color:#666; font-size:14px; margin-bottom:15px;">Defina o valor para vender este animal no Mercado Global.</p>
+        
+        <label style="font-weight:bold; font-size:12px;">Valor por Cabeça (R$)</label>
+        <input type="number" id="venda-valor" placeholder="Ex: 2000" style="width:100%; padding:10px; margin-bottom:10px; font-size:16px;">
+        
+        <label style="font-weight:bold; font-size:12px;">Quantidade (Lote)</label>
+        <div style="display:flex; gap:10px;">
+            <input type="number" id="venda-qtd" value="1" min="1" style="width:70px; padding:10px; font-size:16px;">
+            <div style="font-size:11px; color:#888; align-self:center;">Digite quanto animais iguais a este você quer vender do pasto.</div>
+        </div>
+
+        <button class="btn-small" style="background:#e65100; margin-top:20px; padding:12px;" onclick="confirmarVenda()">📢 PUBLICAR ANÚNCIO</button>
+    </div>
+</div>
+
+<div id="sw-modal" class="sw-overlay">
+    <div class="sw-box">
+        <h3 id="sw-title" style="margin-top:0; color:#333;">Aviso</h3>
+        <p id="sw-text" style="color:#666; margin:15px 0;">...</p>
+        <div id="sw-actions"></div>
+    </div>
+</div>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mapa de Rondônia</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; user-select: none; }
+        body { margin: 0; background: #222; font-family: 'Exo 2', sans-serif; overflow: hidden;}
+        #map { width: 100vw; height: 100vh; background: #222; z-index: 1; }
+        
+        .pin-wrapper { display: flex; flex-direction: column; align-items: center; transition: transform 0.2s; cursor: pointer; }
+        .pin-wrapper:active { transform: scale(0.9); }
+        .pin-marker { font-size: 40px; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.5)); }
+        
+        /* ETIQUETA MELHORADA */
+        .pin-label {
+            background: rgba(0,0,0,0.85); color: white; padding: 4px 8px; border-radius: 12px;
+            font-size: 11px; font-weight: bold; margin-top: -8px; border: 1px solid rgba(255,255,255,0.3);
+            white-space: nowrap; text-align: center; max-width: 120px; overflow: hidden; text-overflow: ellipsis;
+        }
+        .lbl-sub { font-size: 9px; opacity: 0.8; display: block; font-weight: normal; color: #ffd54f; }
+
+        .c-livre { color: #eee; opacity: 0.9; } .c-chacara { color: #66bb6a; } .c-sitio { color: #fbc02d; } .c-fazenda { color: #d84315; } .c-meu { color: #2979ff; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        .ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; }
+        .pointer-events-auto { pointer-events: auto; }
+        
+        .top-bar { position: absolute; top: 0; left: 0; width: 100%; padding: 15px; display: flex; justify-content: space-between; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); }
+        .profile-capsule { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 30px; display: flex; align-items: center; gap: 10px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; }
+        .user-role { font-size: 10px; color: #fbc02d; font-weight: bold; display: block; }
+        .season-badge { background: rgba(0,0,0,0.6); color: white; padding: 5px 10px; border-radius: 10px; font-size: 12px; font-weight: bold; border: 1px solid rgba(255,255,255,0.2); text-align: right; }
+
+        .bottom-dock { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(20, 20, 20, 0.95); padding: 10px 25px; border-radius: 30px; display: flex; gap: 25px; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+        .dock-item { text-align: center; color: #90a4ae; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+        .dock-item i { font-size: 20px; margin-bottom: 3px; }
+        .dock-item span { font-size: 9px; font-weight: 700; text-transform: uppercase; }
+        .dock-item.active { color: #4caf50; }
+
+        #sweet-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; pointer-events: auto; backdrop-filter: blur(5px); }
+        .sweet-box { background: white; width: 85%; max-width: 320px; border-radius: 20px; padding: 25px; text-align: center; border: 4px solid #2e7d32; position: relative; animation: popIn 0.3s; }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .sweet-icon { font-size: 50px; color: #2e7d32; margin-bottom: 10px; }
+        .sweet-title { font-size: 20px; font-weight: 900; color: #333; margin: 0 0 10px; }
+        .sweet-text { font-size: 14px; color: #666; margin-bottom: 20px; }
+        .sweet-btn { background: #2e7d32; border: none; width: 100%; padding: 12px; border-radius: 12px; color: white; font-weight: 900; font-size: 16px; cursor: pointer; margin-top:5px; }
+        .sweet-btn-sec { background: #eee; color: #333; margin-top: 10px; }
+        .close-sweet { position: absolute; top: 10px; right: 15px; font-size: 20px; color: #aaa; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    
+    <div class="ui-layer">
+        <div class="top-bar pointer-events-auto">
+            <div class="profile-capsule" onclick="window.location.href='/perfil'">
+                <i class="fas fa-user-circle" style="font-size:24px;"></i>
+                <div><div style="font-weight:bold; font-size:14px;">{{ user.nome }}</div><span class="user-role">{{ user.titulo }}</span></div>
+            </div>
+            <div class="season-badge"><i class="fas fa-calendar-alt"></i> {{ user.dia }}/{{ user.mes }}/{{ user.ano }}<br><span style="color:#fbc02d">{{ user.estacao }}</span></div>
+        </div>
+        <div class="bottom-dock pointer-events-auto">
+            <div class="dock-item" onclick="window.location.href='/perfil'"><i class="fas fa-user-cog"></i><span>Perfil</span></div>
+            <div class="dock-item active"><i class="fas fa-globe-americas"></i><span>Mapa</span></div>
+            <div class="dock-item" onclick="window.location.href='/financeiro'"><i class="fas fa-chart-line"></i><span>Caixa</span></div>
+            <div class="dock-item" onclick="window.location.href='/logout'"><i class="fas fa-power-off" style="color:#e53935"></i><span>Sair</span></div>
+        </div>
+    </div>
+
+    <div id="sweet-modal">
+        <div class="sweet-box">
+            <i class="fas fa-times close-sweet" onclick="closeModal()"></i>
+            <i class="fas fa-check-circle sweet-icon" id="sw-icon"></i>
+            <h3 class="sweet-title" id="sw-title">...</h3>
+            <div class="sweet-text" id="sw-text">...</div>
+            <div id="sw-actions"></div>
+        </div>
+    </div>
+
+    <script>
+        const imageHeight = 2000; const imageWidth = 2000; const mapBounds = [[0, 0], [imageHeight, imageWidth]];
+        var map = L.map('map', { crs: L.CRS.Simple, minZoom: -2, maxZoom: 1, zoomControl: false, attributionControl: false });
+        L.imageOverlay('/static/img/mapa_rondonia.png', mapBounds).addTo(map);
+        map.fitBounds(mapBounds);
+
+        function createCustomIcon(f) {
+            let icon = 'fa-map-marker-alt'; let colorClass = 'c-livre';
+            let mainLabel = f.nome || "À VENDA"; 
+            let subLabel = `R$ ${f.preco.toLocaleString('pt-BR')}`;
+
+            if (f.dono) {
+                subLabel = f.dono; // Se tem dono, mostra o nome dele embaixo
+                if (f.tipo.includes('Chácara')) { icon='fa-home'; colorClass='c-chacara'; }
+                else if (f.tipo.includes('Sítio')) { icon='fa-warehouse'; colorClass='c-sitio'; }
+                else { icon='fa-industry'; colorClass='c-fazenda'; }
+            }
+            if (f.e_minha) { colorClass = 'c-meu'; subLabel="VOCÊ"; icon = 'fa-star'; }
+
+            const html = `<div class="pin-wrapper"><i class="fas ${icon} pin-marker ${colorClass}"></i><div class="pin-label">${mainLabel}<span class="lbl-sub">${subLabel}</span></div></div>`;
+            return L.divIcon({ html: html, className: 'custom-pin-icon', iconSize: [60, 80], iconAnchor: [30, 70] });
+        }
+
+        fetch('/api/mapa_global').then(r => r.json()).then(data => {
+            data.forEach(f => {
+                let posX = (f.x * (imageWidth / 8)) + 100 + (Math.random()*50-25);
+                let posY = (imageHeight - (f.y * (imageHeight / 8))) - 150 + (Math.random()*50-25);
+                L.marker([posY, posX], {icon: createCustomIcon(f)}).addTo(map).on('click', () => {
+                    if(!f.dono) abrirModalCompra(f);
+                    else if(f.e_minha) abrirModalDono(f);
+                    else window.location.href = `/fazenda/${f.id}`;
+                });
+            });
+        });
+
+        function showSweet(title, text, actionsHtml) {
+            document.getElementById('sw-title').innerText = title;
+            document.getElementById('sw-text').innerHTML = text;
+            document.getElementById('sw-actions').innerHTML = actionsHtml;
+            document.getElementById('sweet-modal').style.display = 'flex';
+        }
+
+        function abrirModalCompra(f) {
+            let html = `<button class="sweet-btn" onclick="comprar(${f.id})">COMPRAR</button>`;
+            showSweet(f.tipo, `Tamanho: ${f.hec} ha<br>Preço: R$ ${f.preco.toLocaleString('pt-BR')}`, html);
+        }
+
+        function abrirModalDono(f) {
+            let html = `<button class="sweet-btn" onclick="window.location.href='/fazenda/${f.id}'">ENTRAR</button>
+                        <button class="sweet-btn sweet-btn-sec" onclick="renomear(${f.id})">RENOMEAR</button>`;
+            showSweet(f.nome, "Esta propriedade é sua.", html);
+        }
+
+        function comprar(id) {
+            fetch(`/api/comprar_fazenda/${id}`, {method:'POST'}).then(r=>r.json()).then(d => {
+                if(d.sucesso) location.reload();
+                else alert(d.erro);
+            });
+        }
+
+        function renomear(id) {
+            let novo = prompt("Novo nome da propriedade:");
+            if(novo) {
+                fetch(`/api/renomear/fazenda/${id}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({nome:novo})}).then(()=>location.reload());
+            }
+        }
+        
+        function closeModal() { document.getElementById('sweet-modal').style.display = 'none'; }
+    </script>
+    <a href="/mercado" style="
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #ff9800;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 2px solid white;
+">
+    <i class="fas fa-gavel"></i> Leilão Global
+</a>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<div id="view-sede" class="view-section active">
+   <div class="card">
+                   <div style="text-align: center; padding: 20px;">
+                <img src="/static/img/silo.png" style="height: 65px; object-fit: contain; margin-bottom: 10px;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2829/2829803.png'">
+                <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Estoque da Colheita</p>
+                <button onclick="abrirModal('modal-silo')" style="width: 100%; background: #4CAF50; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; box-shadow: 0 4px 0 #388E3C;">
+                    ABRIR SILO 📦
+                </button>
+            </div>
+   </div>
+    <div class="card">
+                    <div style="text-align: center; padding: 20px;">
+                <img src="/static/img/celeiro.png" style="height: 65px; object-fit: contain; margin-bottom: 10px;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2829/2829839.png'">
+                <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Sementes e Insumos</p>
+                <button onclick="abrirModal('modal-armazem')" style="width: 100%; background: #4CAF50; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; box-shadow: 0 4px 0 #388E3C;">
+                    ABRIR ARMAZÉM 🎒
+                </button>
+            </div>
+
+    </div>
+
+    <div class="card" onclick="document.getElementById('modal-curral').style.display='flex'">
+                    <div style="text-align: center; padding: 20px;">
+                <img src="/static/img/curral.png" style="height: 65px; object-fit: contain; margin-bottom: 10px;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2829/2829774.png'">
+                <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Animais em Tratamento</p>
+                <button onclick="abrirModal('modal-curral')" style="width: 100%; background: #4CAF50; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; box-shadow: 0 4px 0 #388E3C;">
+                    ABRIR CURRAL 🐄
+                </button>
+            </div>
+    </div>
+
+    <div class="card">
+                    <div style="text-align: center; padding: 20px;">
+                <img src="/static/img/trator.png" style="height: 65px; object-fit: contain; margin-bottom: 10px;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2316/2316668.png'">
+                <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Maquinário Agrícola</p>
+                <button onclick="abrirModal('modal-barracao')" style="width: 100%; background: #4CAF50; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; box-shadow: 0 4px 0 #388E3C;">
+                    VER MÁQUINAS 🚜
+                </button>
+            </div>
+        
+    </div>
+
+</div>
+
+<style>
+    /* Estilo Exclusivo das Janelas (Não afeta o resto do site) */
+    .modal-fundo {
+        display: none; /* Começa escondido */
+        position: fixed; z-index: 9999; left: 0; top: 0;
+        width: 100%; height: 100%; 
+        background-color: rgba(0,0,0,0.7); /* Fundo escuro transparente */
+        align-items: center; justify-content: center;
+        backdrop-filter: blur(4px); /* Desfoque moderno */
+    }
+    
+    .modal-janela {
+        background-color: #fff; 
+        padding: 25px; 
+        border-radius: 20px;
+        width: 85%; max-width: 400px; 
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        max-height: 80vh; overflow-y: auto; /* Permite rolar se a lista for grande */
+        position: relative;
+        animation: surgir 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efeito de "pulo" ao abrir */
+        border: 4px solid #fff;
+    }
+
+    @keyframes surgir { 
+        from {transform: scale(0.8); opacity: 0;} 
+        to {transform: scale(1); opacity: 1;} 
+    }
+
+    .fechar-btn {
+        position: absolute; top: 10px; right: 15px; 
+        font-size: 28px; cursor: pointer; color: #ff5252; font-weight: bold;
+        transition: transform 0.2s;
+    }
+    .fechar-btn:hover { transform: scale(1.2); }
+
+    .modal-titulo { 
+        color: #2e7d32; margin-top: 0; border-bottom: 2px dashed #eee; 
+        padding-bottom: 10px; margin-bottom: 15px; font-size: 20px; 
+    }
+
+    /* Grade interna bonita */
+    .grid-estoque {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+
+    .item-estoque {
+        background: #f1f8e9; padding: 10px; border-radius: 12px; 
+        border: 1px solid #c5e1a5;
+        display: flex; flex-direction: column; align-items: center;
+    }
+    
+    .item-estoque span { font-size: 12px; color: #558b2f; margin-top: 5px; font-weight: bold; }
+    .item-estoque b { font-size: 16px; color: #33691e; }
+    
+    .aviso-vazio { color: #999; font-style: italic; margin-top: 20px; display: block;}
+</style>
+
+<div id="modal-silo" class="modal-fundo" onclick="fecharSeClicarFora(event, 'modal-silo')">
+    <div class="modal-janela">
+        <span class="fechar-btn" onclick="fecharModal('modal-silo')">&times;</span>
+        <h2 class="modal-titulo">🌾 Silo de Grãos</h2>
+        <div style="background: #eee; border-radius: 10px; height: 20px; margin: 15px 0; position: relative; overflow: hidden; border: 1px solid #ddd;">
+    {% set total_estoque = (fazenda.est_milho + fazenda.est_soja + fazenda.est_cafe + fazenda.est_arroz + fazenda.est_feijao + fazenda.est_algodao + fazenda.est_cana + fazenda.est_mandioca + fazenda.est_pimenta) %}
+    {% set porcentagem = (total_estoque / fazenda.cap_silo) * 100 if fazenda.cap_silo > 0 else 0 %}
+    <div style="width: {{ porcentagem }}%; background: #4CAF50; height: 100%; transition: width 0.5s;"></div>
+    <small style="position: absolute; width: 100%; left: 0; top: 0; line-height: 20px; font-weight: bold; color: #333; text-align: center;">
+        {{ total_estoque }} / {{ fazenda.cap_silo }} kg
+    </small>
+</div>
+
+<div style="background: #f9f9f9; padding: 10px; border-radius: 10px; border: 1px solid #eee; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+    <div style="text-align: left;">
+        <span style="font-size: 11px; color: #888; display: block;">Próximo Nível:</span>
+        <b style="color: #2e7d32;">+500 kg</b>
+    </div>
+    <a href="/expandir_silo" style="background: #ff9800; color: white; text-decoration: none; padding: 6px 12px; border-radius: 5px; font-size: 12px; font-weight: bold; box-shadow: 0 3px 0 #e68a00;">
+        EXPANDIR 🛠️
+    </a>
+</div>
+
+<hr style="border: 0; border-top: 1px dashed #eee; margin-bottom: 20px;">
+
+        <div class="grid-estoque">
+            {% if fazenda.est_milho > 0 %}<div class="item-estoque"><img src="/static/img/milho.png" height="35"><span>Milho</span><b>{{ fazenda.est_milho }}</b></div>{% endif %}
+            {% if fazenda.est_soja > 0 %}<div class="item-estoque"><img src="/static/img/soja.png" height="35"><span>Soja</span><b>{{ fazenda.est_soja }}</b></div>{% endif %}
+            {% if fazenda.est_cafe > 0 %}<div class="item-estoque"><img src="/static/img/cafe.png" height="35"><span>Café</span><b>{{ fazenda.est_cafe }}</b></div>{% endif %}
+            {% if fazenda.est_arroz > 0 %}<div class="item-estoque"><img src="/static/img/arroz.png" height="35"><span>Arroz</span><b>{{ fazenda.est_arroz }}</b></div>{% endif %}
+            {% if fazenda.est_feijao > 0 %}<div class="item-estoque"><img src="/static/img/feijao.png" height="35"><span>Feijão</span><b>{{ fazenda.est_feijao }}</b></div>{% endif %}
+            {% if fazenda.est_algodao > 0 %}<div class="item-estoque"><img src="/static/img/algodao.png" height="35"><span>Algodão</span><b>{{ fazenda.est_algodao }}</b></div>{% endif %}
+            {% if fazenda.est_cana > 0 %}<div class="item-estoque"><img src="/static/img/cana.png" height="35"><span>Cana</span><b>{{ fazenda.est_cana }}</b></div>{% endif %}
+            {% if fazenda.est_mandioca > 0 %}<div class="item-estoque"><img src="/static/img/mandioca.png" height="35"><span>Mandioca</span><b>{{ fazenda.est_mandioca }}</b></div>{% endif %}
+            {% if fazenda.est_pimenta > 0 %}<div class="item-estoque"><img src="/static/img/pimenta.png" height="35"><span>Pimenta</span><b>{{ fazenda.est_pimenta }}</b></div>{% endif %}
+        </div>
+
+        {% if (fazenda.est_milho + fazenda.est_soja + fazenda.est_cafe + fazenda.est_arroz + fazenda.est_feijao + fazenda.est_algodao + fazenda.est_cana + fazenda.est_mandioca + fazenda.est_pimenta) == 0 %}
+            <span class="aviso-vazio">O Silo está vazio! Plante algo. 🌱</span>
+        {% endif %}
+    </div>
+</div>
+
+<div id="modal-armazem" class="modal-fundo" onclick="fecharSeClicarFora(event, 'modal-armazem')">
+    <div class="modal-janela">
+        <span class="fechar-btn" onclick="fecharModal('modal-armazem')">&times;</span>
+        <h2 class="modal-titulo">🎒 Insumos</h2>
+        
+        <div style="background: #eee; border-radius: 10px; height: 20px; margin: 15px 0; position: relative; overflow: hidden; border: 1px solid #ddd;">
+            {% set total_insumos = (fazenda.est_sal + fazenda.est_racao + fazenda.est_adubo + fazenda.est_veneno + fazenda.est_combustivel) %}
+            {% set porcentagem_ins = (total_insumos / fazenda.cap_armazem) * 100 if fazenda.cap_armazem > 0 else 0 %}
+            <div style="width: {{ porcentagem_ins }}%; background: #2196F3; height: 100%;"></div>
+            <small style="position: absolute; width: 100%; left: 0; top: 0; line-height: 20px; font-weight: bold; color: #333;">
+                {{ total_insumos }} / {{ fazenda.cap_armazem }} un
+            </small>
+        </div>
+
+        <a href="/expandir_armazem" style="display: block; text-align: center; background: #2196F3; color: white; text-decoration: none; padding: 10px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; font-size: 13px;">
+            MELHORAR CAPACIDADE (R$ 2.500) 🛠️
+        </a>
+
+        <div class="grid-estoque">
+            {% set lista_insumos = [('sal','🧂','Sal'), ('racao','🍱','Ração'), ('adubo','💩','Adubo'), ('veneno','🧪','Veneno'), ('combustivel','⛽','Diesel')] %}
+            
+            {% for chave, icone, nome in lista_insumos %}
+                {% set qtd_ins = fazenda['est_' ~ chave] %}
+                {% if qtd_ins > 0 %}
+                <div class="item-estoque">
+                    <span style="font-size: 20px;">{{ icone }}</span>
+                    <span>{{ nome }}</span>
+                    <b>{{ qtd_ins }} un</b>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        {% if (fazenda.est_sal + fazenda.est_racao + fazenda.est_adubo + fazenda.est_veneno + fazenda.est_combustivel) == 0 %}
+            <span class="aviso-vazio">Armazém vazio. Vá na Loja! 🛒</span>
+        {% endif %}
+    </div>
+</div>
+
+<div id="modal-barracao" class="modal-fundo" onclick="fecharSeClicarFora(event, 'modal-barracao')">
+    <div class="modal-janela">
+        <span class="fechar-btn" onclick="fecharModal('modal-barracao')">&times;</span>
+        <h2 class="modal-titulo">🚜 Máquinas</h2>
+        <div class="grid-estoque">
+             <div class="item-estoque" style="opacity: 0.6;">
+                <img src="/static/img/trator.png" height="35">
+                <span>Trator</span>
+                <b style="color: #ff5252; font-size: 12px;">BLOQUEADO</b>
+             </div>
+        </div>
+    </div>
+</div>
+<div id="modal-curral" class="modal-fundo" onclick="fecharSeClicarFora(event, 'modal-curral')">
+    <div class="modal-janela">
+        <span class="fechar-btn" onclick="fecharModal('modal-curral')">&times;</span>
+        <h2 class="modal-titulo">🏥 Curral de Manejo</h2>
+        
+        <div class="grid-estoque">
+            {% for animal in gado_curral %}
+            <div class="item-estoque" style="border-color: #ef9a9a; background: #ffebee;">
+                <img src="/static/img/vaca.png" height="35">
+                <span style="color: #c62828;">Brinco {{ animal.brinco }}</span>
+                <b style="color: #d32f2f; font-size: 12px;">EM TRATAMENTO</b>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if gado_curral|length == 0 %}
+            <span class="aviso-vazio">O Curral está vazio. Todos os animais estão saudáveis! ✅</span>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function abrirModal(id) {
+        document.getElementById(id).style.display = "flex";
+    }
+										function fecharModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+    function fecharSeClicarFora(event, id) {
+        if (event.target.id === id) {
+            fecharModal(id);
+        }
+    }
+</script>

@@ -1,0 +1,221 @@
+<div id="view-loja" class="view-section" style="overflow-y: auto; padding-bottom: 80px;">
+    
+    <style>
+            /* CORREÇÃO: Só mostra a loja se ela tiver a classe 'active' */
+    #view-loja.active {
+        display: block !important; 
+        width: 100%;
+    }
+    
+    /* SEGURANÇA: Se não tiver a classe 'active', ESCONDE NA MARRA */
+    #view-loja:not(.active) {
+        display: none !important;
+    }
+
+        /* ESTILOS DA LOJA */
+        .loja-cat-title { 
+            color: #1b5e20; 
+            background: rgba(255, 255, 255, 0.8); /* Fundo branco semi-transparente para ler no pasto */
+            padding: 8px 15px; 
+            border-radius: 20px;
+            margin: 25px 0 10px 0; 
+            font-weight: 900; 
+            text-transform: uppercase;
+            font-size: 14px;
+            display: inline-block; /* Fica do tamanho do texto */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    
+    										.grid-loja { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 20px; /* Aumentei de 12px para 20px */
+            margin-bottom: 40px; /* Empurra a próxima categoria para longe */
+        }
+
+    
+    												.item-loja {
+            display: flex !important;            
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            text-align: center !important;       
+            padding: 15px !important;
+            height: auto !important;
+            min-height: 250px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-bottom: 4px solid #e0e0e0;
+            
+            /* ADICIONE/CONFIRA ESTAS DUAS LINHAS: */
+            position: relative; 
+            z-index: 10; /* Garante que o cartão ganhe da Sede */
+        }
+
+
+        .img-loja { 
+            height: 65px; 
+            object-fit: contain; 
+            margin-bottom: 8px !important;
+            display: block !important; 
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+
+        /* BOTÃO VERDE */
+    										.btn-compra-verde {
+            width: 100%;
+            background-color: #43a047; 
+            color: white;
+            border: none;
+            padding: 12px 0;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 15px; /* Empurra para baixo */
+            box-shadow: 0 3px 0 #2e7d32;
+            position: relative; 
+            z-index: 100; /* FORÇA o clique a funcionar */
+        }
+
+        .btn-compra-verde:active { 
+            box-shadow: none; 
+            transform: translateY(3px); 
+        }
+        
+        .item-loja h3 { margin: 5px 0 !important; font-size: 15px; color: #2e7d32; }
+        .item-loja p { margin: 0 !important; font-weight: bold; color: #777; font-size: 12px; }
+            /* --- ESTILO DA NOTIFICAÇÃO ELEGANTE --- */
+    #toast-aviso {
+        visibility: hidden; /* Começa invisível */
+        min-width: 300px;
+        background-color: #333; 
+        color: #fff; 
+        text-align: center; 
+        border-radius: 12px; 
+        padding: 16px; 
+        position: fixed; 
+        z-index: 9999; /* Fica acima de tudo */
+        left: 50%; 
+        top: 30px; /* Aparece no topo */
+        transform: translateX(-50%); /* Centraliza exato */
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        font-size: 15px;
+        opacity: 0;
+        transition: opacity 0.5s, top 0.5s;
+        border-left: 6px solid #4CAF50; /* Linha verde lateral */
+    }
+
+    #toast-aviso.mostrar {
+        visibility: visible;
+        opacity: 1;
+        top: 50px; /* Desliza um pouco para baixo */
+    }
+
+    /* Cores dinâmicas */
+    #toast-aviso.sucesso { border-left-color: #4CAF50; background: #fff; color: #333; }
+    #toast-aviso.erro { border-left-color: #f44336; background: #fff; color: #333; }
+
+    /* Texto detalhado */
+    #toast-titulo { font-weight: 900; display: block; margin-bottom: 5px; font-size: 16px; }
+    #toast-msg { font-size: 14px; color: #666; }
+    
+    </style>
+
+    <div style="background: white; border-radius: 15px; padding: 15px; text-align: center; border: 2px dashed #ccc; margin-bottom: 20px;">
+        <img src="/static/img/trator.png" style="height: 80px; object-fit: contain;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2316/2316668.png'">
+        <h3 style="color:#333; margin: 5px 0;">Trator Agrícola</h3>
+        <p style="color:#999; font-size:12px;">Disponível no nível 10</p>
+        <button class="btn-compra-verde" style="background:#ccc; box-shadow:none; color:#666; cursor:not-allowed;">BLOQUEADO</button>
+    </div>
+
+    <div class="loja-cat-title">🧪 Insumos Agrícolas</div>
+    <div class="grid-loja">
+        <div class="item-loja"><img src="/static/img/sal.png" class="img-loja"><h3>Sal Mineral</h3><p>$80 un</p><button class="btn-compra-verde" onclick="comprarLoja('sal', 1)">Comprar</button></div>
+        <div class="item-loja"><img src="/static/img/racao.png" class="img-loja"><h3>Ração</h3><p>$120 sc</p><button class="btn-compra-verde" onclick="comprarLoja('racao', 1)">Comprar</button></div>
+        <div class="item-loja"><img src="/static/img/adubo.png" class="img-loja"><h3>Adubo</h3><p>$150 sc</p><button class="btn-compra-verde" onclick="comprarLoja('adubo', 1)">Comprar</button></div>
+        <div class="item-loja"><img src="/static/img/veneno.png" class="img-loja"><h3>Defensivo</h3><p>$200 gl</p><button class="btn-compra-verde" onclick="comprarLoja('veneno', 1)">Comprar</button></div>
+        <div class="item-loja"><img src="/static/img/combustivel.png" class="img-loja"><h3>Combustível</h3><p>$450 gl</p><button class="btn-compra-verde" onclick="comprarLoja('combustivel', 1)">Comprar</button></div>
+    </div>
+
+    <div class="loja-cat-title">🌽 Grãos & Cereais</div>
+    <div class="grid-loja">
+        <div class="item-loja"><img src="/static/img/milho.png" class="img-loja"><h3>Milho</h3><p>$200 sc</p><button class="btn-compra-verde" onclick="comprarLoja('sem_milho', 1)">Comprar</button></div>
+        <div class="item-loja"><img src="/static/img/soja.png" class="img-loja"><h3>Soja</h3><p>$350 sc</p><button class="btn-compra-verde" onclick="comprarLoja('sem_soja', 1)">Comprar</button></div>
+        <div class="item-loja"><img src="/static/img/arroz.png" class="img-loja"><h3>Arroz</h3><p>$180 sc</p><button class="btn-compra-verde" onclick="comprarLoja('sem_arroz', 1)">Comprar</button></div>
+        <div class="item-loja"><img src="/static/img/feijao.png" class="img-loja"><h3>Feijão</h3><p>$250 sc</p><button class="btn-compra-verde" onclick="comprarLoja('sem_feijao', 1)">Comprar</button></div>
+        <div class="item-loja"><img src="/static/img/algodao.png" class="img-loja"><h3>Algodão</h3><p>$400 sc</p><button class="btn-compra-verde" onclick="comprarLoja('sem_algodao', 1)">Comprar</button></div>
+        <div class="item-loja"><img src="/static/img/cana.png" class="img-loja"><h3>Cana</h3><p>$300 md</p><button class="btn-compra-verde" onclick="comprarLoja('sem_cana', 1)">Comprar</button></div>
+        <div class="item-loja"><img src="/static/img/mandioca.png" class="img-loja"><h3>Mandioca</h3><p>$150 md</p><button class="btn-compra-verde" onclick="comprarLoja('sem_mandioca', 1)">Comprar</button></div>
+    </div>
+
+    <div class="loja-cat-title">🍎 Frutas & Pomar</div>
+    <div class="grid-loja">
+        <div class="item-loja"><img src="/static/img/cafe.png" class="img-loja"><h3>Café</h3><p>$500 md</p><button class="btn-compra-verde" onclick="comprarLoja('sem_cafe', 1)">Comprar</button></div>
+        <div class="item-loja"><img src="/static/img/cacau.png" class="img-loja"><h3>Cacau</h3><p>$600 md</p><button class="btn-compra-verde" onclick="comprarLoja('sem_cacau', 1)">Comprar</button></div>
+        <div class="item-loja"><img src="/static/img/acai.png" class="img-loja"><h3>Açaí</h3><p>$450 md</p><button class="btn-compra-verde" onclick="comprarLoja('sem_acai', 1)">Comprar</button></div>
+        <div class="item-loja"><img src="/static/img/cupuacu.png" class="img-loja"><h3>Cupuaçu</h3><p>$400 md</p><button class="btn-compra-verde" onclick="comprarLoja('sem_cupuacu', 1)">Comprar</button></div>
+        <div class="item-loja"><img src="/static/img/banana.png" class="img-loja"><h3>Banana</h3><p>$200 md</p><button class="btn-compra-verde" onclick="comprarLoja('sem_banana', 1)">Comprar</button></div>
+        <div class="item-loja"><img src="/static/img/abacaxi.png" class="img-loja"><h3>Abacaxi</h3><p>$250 md</p><button class="btn-compra-verde" onclick="comprarLoja('sem_abacaxi', 1)">Comprar</button></div>
+        <div class="item-loja"><img src="/static/img/melancia.png" class="img-loja"><h3>Melancia</h3><p>$120 sc</p><button class="btn-compra-verde" onclick="comprarLoja('sem_melancia', 1)">Comprar</button></div>
+        <div class="item-loja"><img src="/static/img/pimenta.png" class="img-loja"><h3>Pimenta</h3><p>$300 sc</p><button class="btn-compra-verde" onclick="comprarLoja('sem_pimenta', 1)">Comprar</button></div>
+    </div>
+</div>
+<div id="toast-aviso"><span id="toast-titulo"></span><span id="toast-msg"></span></div>
+<script>
+    function comprarLoja(item_cod, quantidade) {
+        var btn = event.target;
+        var textoOriginal = btn.innerHTML;
+        btn.innerHTML = "⏳ Processando..."; // Feedback imediato
+        btn.disabled = true; // Evita duplo clique
+
+        fetch('/comprar_loja', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ item: item_cod, qtd: quantidade })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.sucesso) {
+                // SUCESSO: Mostra aviso verde e recarrega
+                mostrarToast("sucesso", "Compra Realizada! 🚜", "Item adicionado ao estoque.<br>Novo Saldo: <b>$" + data.novo_saldo + "</b>");
+                
+                // Espera 2 segundos para o jogador ler, depois atualiza
+                setTimeout(() => { location.reload(); }, 2000);
+            } else {
+                // ERRO: Mostra aviso vermelho
+                mostrarToast("erro", "Ops! Algo deu errado ❌", data.mensagem);
+                btn.innerHTML = textoOriginal;
+                btn.disabled = false;
+            }
+        })
+        .catch(error => {
+            mostrarToast("erro", "Erro de Conexão", "Verifique sua internet.");
+            btn.innerHTML = textoOriginal;
+            btn.disabled = false;
+        });
+    }
+
+    // Função que faz a mágica visual
+    function mostrarToast(tipo, titulo, mensagem) {
+        var x = document.getElementById("toast-aviso");
+        var tTitulo = document.getElementById("toast-titulo");
+        var tMsg = document.getElementById("toast-msg");
+
+        // Define o conteúdo
+        x.className = "mostrar " + tipo; // Adiciona classe 'sucesso' ou 'erro'
+        tTitulo.innerHTML = titulo;
+        tMsg.innerHTML = mensagem;
+
+        // Toca um som sutil (opcional, se quiser remover basta apagar)
+        // var audio = new Audio('/static/sons/kaching.mp3'); audio.play().catch(e=>{});
+
+        // Esconde depois de 3 segundos (se não for recarregar a página)
+        if(tipo === 'erro') {
+            setTimeout(function(){ x.className = x.className.replace("mostrar", ""); }, 3500);
+        }
+    }
+</script>
+

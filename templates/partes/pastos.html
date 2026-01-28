@@ -1,0 +1,30 @@
+<div id="view-pastos" class="view-section">
+    {% for lote in fazenda.lotes %}
+    <div class="card pasto-card" onclick="abrirPasto({{ lote.id }})">
+        {% if lote.status == 'mato' %}
+            <i class="fas fa-tree card-icon" style="color:#5d4037"></i>
+            <h3>Mato</h3>
+        
+        {% elif lote.status == 'arado' %}
+            <i class="fas fa-tractor card-icon" style="color:#795548"></i>
+            <a href="/colher/{{ lote.id }}" style="color: green; font-weight: bold;">[ COLHER ]</a>
+            <h3>Arado</h3>
+        
+        {% elif lote.cultivo %}
+            <img src="/static/img/{{ lote.cultivo }}.png" width="50">
+            <h3>{{ lote.cultivo|capitalize }}</h3>
+        
+        {% elif lote.animais|length > 0 %}
+            <img src="/static/img/{{ lote.animais[0].raca|lower }}.png" width="50" onerror="this.src='/static/img/nelore.png'">
+            <h3>{{ lote.animais|length }} Gado</h3>
+        
+        {% else %}
+            <i class="fas fa-sun" style="font-size:35px; color:#fbc02d"></i>
+            <h3>Pasto</h3>
+        {% endif %}
+        
+        <small>{{ lote.nome }}</small>
+        <div class="badge">{{ lote.animais|length if lote.animais else '' }}</div>
+    </div>
+    {% endfor %}
+</div>

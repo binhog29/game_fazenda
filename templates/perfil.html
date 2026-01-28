@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Perfil</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%); font-family: 'Poppins', sans-serif; margin: 0; padding: 20px; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 85%; max-width: 350px; text-align: center; position:relative; }
+        .avatar { width: 80px; height: 80px; background: #e8f5e9; border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 35px; color: #2e7d32; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #2e7d32; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-back { position: absolute; top: 15px; left: 15px; color: #aaa; font-size: 20px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <a href="/" class="btn-back"><i class="fas fa-arrow-left"></i></a>
+        <div class="avatar"><i class="fas fa-user-circle"></i></div>
+        <h2 style="margin:0">{{ user.nome }}</h2>
+        <p style="color:#666; margin:5px 0 20px; font-weight:600;">{{ user.titulo }}</p>
+        
+        <input type="text" id="nome" value="{{ user.nome }}" placeholder="Nome">
+        <input type="email" id="email" value="{{ user.email or '' }}" placeholder="E-mail">
+        <input type="password" id="senha" placeholder="Nova Senha">
+        
+        <button onclick="salvar()">SALVAR DADOS</button>
+    </div>
+    <script>
+        function salvar() {
+            fetch('/api/usuario/atualizar', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+                novo_nome: document.getElementById('nome').value,
+                novo_email: document.getElementById('email').value,
+                nova_senha: document.getElementById('senha').value
+            })}).then(r=>r.json()).then(d=>{ alert(d.msg); if(d.sucesso) location.reload(); });
+        }
+    </script>
+</body>
+</html>

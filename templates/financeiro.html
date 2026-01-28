@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Finanças</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Nunito', sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
+        .card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { margin: 0 0 15px 0; color: #333; display: flex; align-items: center; gap: 10px; }
+        .trans-item { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 12px 0; font-size: 13px; }
+        .val-pos { color: green; font-weight: bold; }
+        .val-neg { color: red; font-weight: bold; }
+        
+        /* Botão Voltar Melhorado */
+        .back-btn { 
+            display: block; text-align: center; margin-top: 20px; 
+            background: #2e7d32; color: white; padding: 12px; 
+            border-radius: 10px; text-decoration: none; font-weight: bold; 
+            box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);
+        }
+        .back-btn:active { transform: scale(0.98); }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2><i class="fas fa-chart-pie" style="color:orange"></i> Fluxo de Caixa</h2>
+        <h3 style="color:#2e7d32; font-size: 24px; margin: 10px 0;">Saldo: R$ {{ saldo }}</h3>
+        <div style="display:flex; justify-content:space-between; background:#f9f9f9; padding:10px; border-radius:10px;">
+            <div>Entradas: <span class="val-pos">+{{ entradas }}</span></div>
+            <div>Saídas: <span class="val-neg">{{ saidas }}</span></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3><i class="fas fa-history"></i> Histórico Recente</h3>
+        {% if user.transacoes|length == 0 %}
+            <p style="color:#999; text-align:center;">Nenhuma transação ainda.</p>
+        {% endif %}
+        
+        {% for t in user.transacoes[:20] %}
+        <div class="trans-item">
+            <span>
+                <div style="font-weight:bold; color:#555">{{ t.descricao }}</div>
+                <div style="font-size:10px; color:#999">{{ t.data_jogo }}</div>
+            </span>
+            <span class="{{ 'val-pos' if t.valor > 0 else 'val-neg' }}">
+                {{ '+' if t.valor > 0 else '' }}{{ t.valor }}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if user.fazendas|length > 0 %}
+        <a href="/fazenda/{{ user.fazendas[0].id }}" class="back-btn"><i class="fas fa-home"></i> Voltar para a Sede</a>
+    {% else %}
+        <a href="/" class="back-btn"><i class="fas fa-map"></i> Voltar para o Mapa</a>
+    {% endif %}
+
+</body>
+</html>

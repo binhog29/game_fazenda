@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <title>Gestão Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilo.css') }}">
+</head>
+<body>
+
+    <div class="header">
+        <div class="user-pill">
+            <i class="fas fa-user-circle" style="font-size:30px; color:#2e7d32; margin-right:10px;"></i>
+            <div><div class="user-name">{{ user.nome }}</div><div style="font-size:10px; color:#f9a825; font-weight:bold;">{{ user.titulo }}</div></div>
+        </div>
+        <div style="text-align:right;">
+            <div class="money-badge">R$ {{ user.dinheiro|int }}</div>
+            <div class="time-box">
+                <i class="fas fa-calendar-day"></i> {{ user.dia }}/{{ user.mes }}/{{ user.ano }}
+            </div>
+        </div>
+    </div>
+
+    <div class="farm-title" onclick="{% if not visitante %}renomearFazenda({{ fazenda.id }}){% endif %}">
+        {{ fazenda.nome_personalizado }} <i class="fas fa-pen" style="font-size:14px; opacity:0.6"></i>
+    </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="mensagens-sistema" style="padding: 0 15px; margin-top: 10px;">
+      {% for category, message in messages %}
+        <div class="alert-{{ category }}" style="
+            background: white; 
+            padding: 12px 15px; 
+            border-radius: 12px; 
+            margin-bottom: 8px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-left: 6px solid {% if category == 'success' %}#4CAF50{% else %}#f44336{% endif %};
+        ">
+            <span style="font-size: 13px; color: #333; font-weight: bold;">{{ message }}</span>
+            <span onclick="this.parentElement.remove()" style="font-size: 22px; color: #aaa; cursor: pointer; padding-left: 10px;">&times;</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+    <div class="tabs">
+        <div class="tab-btn active" id="tab-sede" onclick="ver('sede', this)">🏠 Sede</div>
+        <div class="tab-btn" id="tab-pastos" onclick="ver('pastos', this)">🐄 Pastos</div>
+        <div class="tab-btn" id="tab-loja" onclick="ver('loja', this)">🏪 Loja</div>
+        <div class="tab-btn" onclick="window.location.href='/financeiro'">💰 Finanças</div>
+        <div class="tab-btn" onclick="window.location.href='/'">🗺️ Mapa</div>
+    </div>
+
+    {% if visitante %}<div class="visitante-banner">👁️ MODO VISITANTE</div>{% endif %}
+
+    {% include 'partes/sede.html' %}
+    {% include 'partes/pastos.html' %}
+    {% include 'partes/loja.html' %}
+    {% include 'partes/modais.html' %}
+
+    <script>
+        const CUSTOS = {{ custos|tojson }}; 
+        let loteAtual = 0; 
+        let animalAtual = 0;
+        const VISITANTE = {{ 'true' if visitante else 'false' }};
+    </script>
+
+    <script src="{{ url_for('static', filename='js/logica.js') }}"></script>
+</body>
+</html>
