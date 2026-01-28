@@ -16,7 +16,7 @@
             <div><div class="user-name">{{ user.nome }}</div><div style="font-size:10px; color:#f9a825; font-weight:bold;">{{ user.titulo }}</div></div>
         </div>
         <div style="text-align:right;">
-            <div class="money-badge">R$ {{ user.dinheiro|int }}</div>
+            <div class="money-badge">R$ {{ user.dinheiro|int if user else 0 }}</div>
             <div class="time-box">
                 <i class="fas fa-calendar-day"></i> {{ user.dia }}/{{ user.mes }}/{{ user.ano }}
             </div>

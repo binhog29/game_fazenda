@@ -1,13 +1,13 @@
 <div id="view-sede" class="view-section active">
-   <div class="card">
-                   <div style="text-align: center; padding: 20px;">
+<div class="card">
+<div style="text-align: center; padding: 20px;">
                 <img src="/static/img/silo.png" style="height: 65px; object-fit: contain; margin-bottom: 10px;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2829/2829803.png'">
                 <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Estoque da Colheita</p>
                 <button onclick="abrirModal('modal-silo')" style="width: 100%; background: #4CAF50; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; box-shadow: 0 4px 0 #388E3C;">
                     ABRIR SILO 📦
                 </button>
             </div>
-   </div>
+</div>
     <div class="card">
                     <div style="text-align: center; padding: 20px;">
                 <img src="/static/img/celeiro.png" style="height: 65px; object-fit: contain; margin-bottom: 10px;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2829/2829839.png'">
@@ -126,16 +126,29 @@
 <hr style="border: 0; border-top: 1px dashed #eee; margin-bottom: 20px;">
 
         <div class="grid-estoque">
-            {% if fazenda.est_milho > 0 %}<div class="item-estoque"><img src="/static/img/milho.png" height="35"><span>Milho</span><b>{{ fazenda.est_milho }}</b></div>{% endif %}
-            {% if fazenda.est_soja > 0 %}<div class="item-estoque"><img src="/static/img/soja.png" height="35"><span>Soja</span><b>{{ fazenda.est_soja }}</b></div>{% endif %}
-            {% if fazenda.est_cafe > 0 %}<div class="item-estoque"><img src="/static/img/cafe.png" height="35"><span>Café</span><b>{{ fazenda.est_cafe }}</b></div>{% endif %}
-            {% if fazenda.est_arroz > 0 %}<div class="item-estoque"><img src="/static/img/arroz.png" height="35"><span>Arroz</span><b>{{ fazenda.est_arroz }}</b></div>{% endif %}
-            {% if fazenda.est_feijao > 0 %}<div class="item-estoque"><img src="/static/img/feijao.png" height="35"><span>Feijão</span><b>{{ fazenda.est_feijao }}</b></div>{% endif %}
-            {% if fazenda.est_algodao > 0 %}<div class="item-estoque"><img src="/static/img/algodao.png" height="35"><span>Algodão</span><b>{{ fazenda.est_algodao }}</b></div>{% endif %}
-            {% if fazenda.est_cana > 0 %}<div class="item-estoque"><img src="/static/img/cana.png" height="35"><span>Cana</span><b>{{ fazenda.est_cana }}</b></div>{% endif %}
-            {% if fazenda.est_mandioca > 0 %}<div class="item-estoque"><img src="/static/img/mandioca.png" height="35"><span>Mandioca</span><b>{{ fazenda.est_mandioca }}</b></div>{% endif %}
-            {% if fazenda.est_pimenta > 0 %}<div class="item-estoque"><img src="/static/img/pimenta.png" height="35"><span>Pimenta</span><b>{{ fazenda.est_pimenta }}</b></div>{% endif %}
+    {% set lista_venda = [
+        ('milho', '🌽', 'Milho'), ('soja', '🌱', 'Soja'), 
+        ('cafe', '☕', 'Café'), ('arroz', '🍚', 'Arroz'), 
+        ('feijao', '🍲', 'Feijão'), ('algodao', '☁️', 'Algodão'), 
+        ('cana', '🎋', 'Cana'), ('mandioca', '🍠', 'Mandioca'), 
+        ('pimenta', '🌶️', 'Pimenta')
+    ] %}
+
+    {% for tipo, icone, nome in lista_venda %}
+        {% set qtd = fazenda['est_' ~ tipo] %}
+        {% if qtd > 0 %}
+        <div class="item-estoque">
+            <span style="font-size: 24px;">{{ icone }}</span>
+            <span>{{ nome }}</span>
+            <b>{{ qtd }} kg</b>
+            <a href="{{ url_for('vender_grao', tipo=tipo) }}" 
+style="background: #2e7d32; color: white; text-decoration: none; padding: 6px; border-radius: 6px; font-size: 10px; margin-top: 8px; width: 100%; font-weight: bold;">
+VENDER 💰
+            </a>
         </div>
+        {% endif %}
+    {% endfor %}
+</div>
 
         {% if (fazenda.est_milho + fazenda.est_soja + fazenda.est_cafe + fazenda.est_arroz + fazenda.est_feijao + fazenda.est_algodao + fazenda.est_cana + fazenda.est_mandioca + fazenda.est_pimenta) == 0 %}
             <span class="aviso-vazio">O Silo está vazio! Plante algo. 🌱</span>

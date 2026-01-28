@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, session, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
@@ -221,12 +221,21 @@ def comprar(fid):
 
 @app.route('/fazenda/<int:id>')
 def ver_fazenda(id):
-    if 'user_id' not in session: return redirect('/')
     f = db.session.get(Fazenda, id)
-    visitante = f.dono_id != session['user_id']
-    gado_curral = [a for l in f.lotes for a in l.animais if a.onde_esta == 'curral']
-    return render_template('gestao_fazenda.html', fazenda=f, user=db.session.get(Usuario, session['user_id']), custos=CUSTOS, gado_curral=gado_curral, visitante=visitante)
+    user_id = session.get('user_id')
+    user = db.session.get(Usuario, user_id) if user_id else None
+    
+    # Busca animais que estão no curral desta fazenda
+    gado_curral = Animal.query.join(Lote).filter(Lote.fazenda_id == id, Animal.onde_esta == 'curral').all()
+    
+    # CORREÇÃO: Usar dono_id em vez de usuario_id
+    visitante = True
+    if user and f.dono_id == user.id:
+        visitante = False
 
+    return render_template('gestao_fazenda.html', 
+                           fazenda=f, user=user, visitante=visitante, 
+                           custos=CUSTOS, gado_curral=gado_curral)
 @app.route('/api/pasto/<int:lid>')
 def get_pasto(lid):
     l = db.session.get(Lote, lid); animais = []
@@ -413,71 +422,71 @@ def cancelar_anuncio(aid):
 # --- ROTA DE EXPANSÃO (Sede) ---
 @app.route('/expandir_silo')
 def expandir_silo():
-    fazenda = Fazenda.query.first() # Pega sua fazenda
-    custo = 5000 * fazenda.nivel_silo # R$ 5mil por nível
-
-    if fazenda.dinheiro >= custo:
-        fazenda.dinheiro -= custo
-        fazenda.cap_silo += 500      # Aumenta 500kg de espaço
-        fazenda.nivel_silo += 1      # Sobe o nível
-        db.session.commit()
-        flash(f"Silo expandido! Nova capacidade: {fazenda.cap_silo}kg", "success")
-    else:
-        flash(f"Dinheiro insuficiente! Você precisa de R$ {custo}", "danger")
+    user_id = session.get('user_id')
+    u = db.session.get(Usuario, user_id)
+    f = Fazenda.query.filter_by(dono_id=user_id).first()
     
-    return redirect(url_for('index')) # Ou o nome da sua rota principal
+    custo = 5000 * f.nivel_silo
+
+    # CORREÇÃO: Checar o dinheiro no USUÁRIO (u), não na fazenda
+    if u.dinheiro >= custo:
+        u.dinheiro -= custo
+        f.cap_silo += 500
+        f.nivel_silo += 1
+        db.session.commit()
+        flash(f"Silo expandido! Capacidade: {f.cap_silo}kg", "success")
+    else:
+        flash(f"Dinheiro insuficiente! Precisa de R$ {custo}", "danger")
+    
+    return redirect(url_for('ver_fazenda', id=f.id))
 
 # --- ROTA DE COLHEITA (Pastos) ---
 @app.route('/colher/<int:lote_id>')
 def colher(lote_id):
-    lote = Lote.query.get(lote_id)
-    fazenda = Fazenda.query.first()
+    lote = db.session.get(Lote, lote_id)
+    f = lote.fazenda
     
-    colheita_estimada = 100 # Quanto o lote produz
+    colheita_estimada = 100
+    total_atual = (f.est_milho + f.est_soja + f.est_cafe + f.est_arroz + f.est_feijao + f.est_algodao + f.est_cana + f.est_mandioca + f.est_pimenta)
 
-    # SOMA TOTAL DO SILO (A Trava)
-    total_atual = (fazenda.est_milho + fazenda.est_soja + fazenda.est_cafe + 
-                   fazenda.est_arroz + fazenda.est_feijao + fazenda.est_algodao + 
-                   fazenda.est_cana + fazenda.est_mandioca + fazenda.est_pimenta)
+    if total_atual + colheita_estimada > f.cap_silo:
+        flash("Silo Lotado!", "warning")
+        return redirect(url_for('ver_fazenda', id=f.id))
 
-    # VERIFICAÇÃO CIRÚRGICA
-    if total_atual + colheita_estimada > fazenda.cap_silo:
-        flash("Silo Lotado! Expanda a capacidade na Sede.", "warning")
-        return redirect(url_for('pastos'))
-
-    # Se tem espaço, adiciona no estoque (exemplo para milho)
-    if lote.cultivo == 'milho':
-        fazenda.est_milho += colheita_estimada
+    if lote.cultivo:
+        # Adiciona ao estoque dinamicamente baseado no que estava plantado
+        coluna = f'est_{lote.cultivo}'
+        if hasattr(f, coluna):
+            setattr(f, coluna, getattr(f, coluna) + colheita_estimada)
     
-    lote.cultivo = None # Limpa o lote
+    lote.cultivo = None
+    lote.status = 'limpo'
     db.session.commit()
-    flash(f"Colheita de {colheita_estimada}kg realizada!", "success")
-    return redirect(url_for('pastos'))
+    flash(f"Colheita realizada!", "success")
+    return redirect(url_for('ver_fazenda', id=f.id))
 
 @app.route('/vender_grao/<tipo>')
 def vender_grao(tipo):
-    f = Fazenda.query.first() # Pega sua fazenda
-    u = Usuario.query.get(session['user_id']) # Pega o jogador
+    user_id = session.get('user_id')
+    u = db.session.get(Usuario, user_id)
+    # CORREÇÃO: Buscar por dono_id
+    f = Fazenda.query.filter_by(dono_id=user_id).first()
     
-    # Define o preço por kg (exemplo)
-    precos = {'milho': 2, 'soja': 5, 'cafe': 12, 'arroz': 3, 'feijao': 4}
-    preco_unidade = precos.get(tipo, 1)
+    if not f: f = Fazenda.query.first()
     
-    # Pega quanto tem no estoque usando o nome da coluna
-    quantidade = getattr(f, f'est_{tipo}')
+    # Lógica de Preços
+    precos = {'milho': 2, 'soja': 5, 'cafe': 12, 'arroz': 3, 'feijao': 4, 'algodao': 6, 'cana': 1, 'mandioca': 2, 'pimenta': 15}
+    valor_unidade = precos.get(tipo, 1)
     
-    if quantidade > 0:
-        valor_venda = quantidade * preco_unidade
-        u.dinheiro += valor_venda  # Adiciona o dinheiro ao jogador
-        setattr(f, f'est_{tipo}', 0) # Zerar o estoque após venda total
-        
+    qtd = getattr(f, f'est_{tipo}')
+    if qtd > 0:
+        lucro = qtd * valor_unidade
+        u.dinheiro += lucro
+        setattr(f, f'est_{tipo}', 0)
         db.session.commit()
-        flash(f"Venda realizada! +R$ {valor_venda}", "success")
-    else:
-        flash("Estoque vazio!", "warning")
-        
-    return redirect(url_for('ver_fazenda'))
-    
+        flash(f"Venda realizada! +R$ {lucro}", "success")
+
+    return redirect(url_for('ver_fazenda', id=f.id))
 if __name__ == '__main__':
     with app.app_context(): criar_mundo()
     app.run(debug=True, host='0.0.0.0', port=5000)
