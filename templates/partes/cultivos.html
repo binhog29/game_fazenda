@@ -1,0 +1,26 @@
+<div id="view-cultivo" class="view-section">
+    {% for lote in fazenda.lotes %}
+        {# Restaurado: mostra lotes que podem ser arados ou plantados #}
+        {% if lote.status in ['plantado', 'arado', 'mato', 'livre'] or not lote.status %}
+        <div class="card pasto-card" onclick="abrirPasto({{ lote.id }})">
+            <div style="height: 65px; display: flex; align-items: center; justify-content: center;">
+                {% if lote.status == 'plantado' %}
+                    <img src="/static/img/{{ lote.cultivo|lower }}.png" width="55" onerror="this.src='/static/img/milho.png'">
+                {% elif lote.status == 'arado' %}
+                    <img src="/static/img/arado.png" width="60">
+                {% elif lote.status == 'mato' %}
+                    <img src="/static/img/arvore.png" width="50">
+                {% else %}
+                    <img src="/static/img/arado.png" style="opacity: 0.2; width: 55px;">
+                {% endif %}
+            </div>
+            <h3 style="margin:5px 0; font-size:14px;">{{ lote.nome }}</h3>
+            <small style="color:#2e7d32; font-size:10px;">{{ lote.status|upper if lote.status else 'LIVRE' }}</small>
+        </div>
+        {% endif %}
+    {% endfor %}
+    <div class="card pasto-card" onclick="mostrarAviso('Imobiliária', 'Vá ao Mapa Global para adquirir novas propriedades.', 'sucesso')" style="border: 2px dashed #ccc; background: transparent;">
+        <i class="fas fa-plus" style="font-size:35px; color:#ccc;"></i>
+        <h3 style="margin:5px 0; color:#999;">Nova Terra</h3>
+    </div>
+</div>

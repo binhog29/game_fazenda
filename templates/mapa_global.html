@@ -16,7 +16,6 @@
         .pin-wrapper:active { transform: scale(0.9); }
         .pin-marker { font-size: 40px; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.5)); }
         
-        /* ETIQUETA MELHORADA */
         .pin-label {
             background: rgba(0,0,0,0.85); color: white; padding: 4px 8px; border-radius: 12px;
             font-size: 11px; font-weight: bold; margin-top: -8px; border: 1px solid rgba(255,255,255,0.3);
@@ -30,17 +29,14 @@
         .ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; }
         .pointer-events-auto { pointer-events: auto; }
         
-        .top-bar { position: absolute; top: 0; left: 0; width: 100%; padding: 15px; display: flex; justify-content: space-between; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); }
-        .profile-capsule { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 30px; display: flex; align-items: center; gap: 10px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; }
-        .user-role { font-size: 10px; color: #fbc02d; font-weight: bold; display: block; }
-        .season-badge { background: rgba(0,0,0,0.6); color: white; padding: 5px 10px; border-radius: 10px; font-size: 12px; font-weight: bold; border: 1px solid rgba(255,255,255,0.2); text-align: right; }
-
+        /* Menu de Baixo (Mantido) */
         .bottom-dock { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(20, 20, 20, 0.95); padding: 10px 25px; border-radius: 30px; display: flex; gap: 25px; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
         .dock-item { text-align: center; color: #90a4ae; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
         .dock-item i { font-size: 20px; margin-bottom: 3px; }
         .dock-item span { font-size: 9px; font-weight: 700; text-transform: uppercase; }
         .dock-item.active { color: #4caf50; }
 
+        /* Modal Sweet (Mantido) */
         #sweet-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; pointer-events: auto; backdrop-filter: blur(5px); }
         .sweet-box { background: white; width: 85%; max-width: 320px; border-radius: 20px; padding: 25px; text-align: center; border: 4px solid #2e7d32; position: relative; animation: popIn 0.3s; }
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -56,12 +52,30 @@
     <div id="map"></div>
     
     <div class="ui-layer">
-        <div class="top-bar pointer-events-auto">
-            <div class="profile-capsule" onclick="window.location.href='/perfil'">
-                <i class="fas fa-user-circle" style="font-size:24px;"></i>
-                <div><div style="font-weight:bold; font-size:14px;">{{ user.nome }}</div><span class="user-role">{{ user.titulo }}</span></div>
+        
+        <div style="position: absolute; top: 0; left: 0; width: 100%; padding: 10px; display: flex; justify-content: space-between; align-items: flex-start; z-index: 2000; box-sizing: border-box; pointer-events: none;">
+
+            <a href="/perfil" style="background: rgba(30, 30, 30, 0.95); padding: 5px 12px 5px 5px; border-radius: 30px; display: flex; align-items: center; gap: 8px; text-decoration: none; color: white; border: 1px solid #555; pointer-events: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.3); max-width: 35%;">
+                <div style="width: 32px; height: 32px; background: #2e7d32; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid #fff;">
+                    👤
+                </div>
+                <div style="line-height: 1.1; overflow: hidden;">
+                    <div style="font-weight: bold; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ user.nome }}</div>
+                    <div style="font-size: 9px; color: #FFD700;">{{ user.titulo }}</div>
+                </div>
+            </a>
+
+            <a href="/mercado" style="background: linear-gradient(180deg, #FF9800, #F57C00); color: white; padding: 8px 16px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 12px; border: 2px solid white; box-shadow: 0 4px 15px rgba(255, 152, 0, 0.5); pointer-events: auto; display: flex; align-items: center; gap: 5px; transform: translateY(2px); margin: 0 5px;">
+                <span>🔨</span> LEILÃO
+            </a>
+
+            <div style="background: rgba(30, 30, 30, 0.95); padding: 6px 12px; border-radius: 15px; text-align: center; color: white; border: 1px solid #555; pointer-events: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.3); min-width: 80px;">
+                <div style="font-size: 9px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;">{{ user.estacao }}</div>
+                <div style="font-weight: bold; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                    📅 {{ user.dia }}/{{ user.mes }}/{{ user.ano }}
+                </div>
             </div>
-            <div class="season-badge"><i class="fas fa-calendar-alt"></i> {{ user.dia }}/{{ user.mes }}/{{ user.ano }}<br><span style="color:#fbc02d">{{ user.estacao }}</span></div>
+
         </div>
         <div class="bottom-dock pointer-events-auto">
             <div class="dock-item" onclick="window.location.href='/perfil'"><i class="fas fa-user-cog"></i><span>Perfil</span></div>
@@ -93,7 +107,7 @@
             let subLabel = `R$ ${f.preco.toLocaleString('pt-BR')}`;
 
             if (f.dono) {
-                subLabel = f.dono; // Se tem dono, mostra o nome dele embaixo
+                subLabel = f.dono; 
                 if (f.tipo.includes('Chácara')) { icon='fa-home'; colorClass='c-chacara'; }
                 else if (f.tipo.includes('Sítio')) { icon='fa-warehouse'; colorClass='c-sitio'; }
                 else { icon='fa-industry'; colorClass='c-fazenda'; }
@@ -150,24 +164,5 @@
         
         function closeModal() { document.getElementById('sweet-modal').style.display = 'none'; }
     </script>
-    <a href="/mercado" style="
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #ff9800;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 30px;
-    text-decoration: none;
-    font-weight: bold;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border: 2px solid white;
-">
-    <i class="fas fa-gavel"></i> Leilão Global
-</a>
 </body>
 </html>

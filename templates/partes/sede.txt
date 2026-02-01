@@ -1,0 +1,231 @@
+<script>
+    // --- 0. IDENTIFICAÇÃO ---
+    const MEU_ID = {{ user.id }}; 
+
+    // --- 1. DADOS ---
+    const PRECOS = {
+        'milho': 15, 'soja': 22, 'arroz': 18, 'feijao': 25, 'algodao': 35, 'cana': 12, 'mandioca': 10, 'cafe': 45,
+        'pimenta': 20, 'cacau': 50, 'acai': 30, 'cupuacu': 28, 'banana': 8, 'abacaxi': 15, 'melancia': 10,
+        'sal': 40, 'racao': 60, 'adubo': 75, 'veneno': 100, 'combustivel': 200
+    };
+
+    let chatIntervalo = null; 
+
+    // --- 2. SISTEMA DE CHAT E ALERTA (MELHORADO) ---
+    function atualizarChat() {
+        fetch('/api/chat')
+        .then(response => response.json())
+        .then(listaMensagens => {
+            const divLista = document.getElementById('mensagens-lista');
+            const chatAbertoId = document.getElementById('destinatario_id').value;
+            const chatEstaVisivel = document.getElementById('janela-chat').style.display === 'block';
+            
+            divLista.innerHTML = ""; 
+            
+            let temNovaMensagem = false;
+
+            listaMensagens.reverse().forEach(msg => {
+                let mostrar = false;
+                
+                // Filtros
+                if (chatAbertoId === "" && msg.tipo === 'global') mostrar = true;
+                else if (msg.tipo === 'privado') {
+                     if ((msg.remetente_id == MEU_ID && msg.destinatario_id == chatAbertoId) ||
+                         (msg.remetente_id == chatAbertoId && msg.destinatario_id == MEU_ID)) {
+                         mostrar = true;
+                     }
+                }
+
+                if (mostrar) {
+                    const p = document.createElement('p');
+                    p.style.margin = "5px 0"; p.style.padding = "8px"; p.style.borderRadius = "8px"; p.style.fontSize = "13px"; p.style.maxWidth = "85%"; p.style.wordWrap = "break-word";
+
+                    if (msg.remetente_id == MEU_ID) {
+                        p.style.background = "#dcedc8"; p.style.textAlign = "right"; p.style.marginLeft = "auto";
+                        p.innerHTML = `<span style="color: #333;">${msg.texto}</span>`;
+                    } else {
+                        p.style.background = "#fff"; p.style.textAlign = "left"; p.style.marginRight = "auto"; p.style.border = "1px solid #eee";
+                        p.innerHTML = `<strong style="color: #2e7d32; font-size:11px;">${msg.nome}</strong><br>${msg.texto}`;
+                        
+                        // Detecta msg de outro
+                        temNovaMensagem = true;
+                    }
+                    divLista.appendChild(p);
+                }
+            });
+            divLista.scrollTop = divLista.scrollHeight;
+
+            // --- LÓGICA NOVA DO ALERTA ---
+            // Se tem mensagem nova E o chat está fechado -> Pinta de Laranja
+            if (temNovaMensagem && !chatEstaVisivel) {
+                // Tenta pegar pelo ID novo, se não achar, tenta pegar pelo jeito antigo
+                let btn = document.getElementById('btn-social-alerta');
+                if (!btn) btn = document.querySelector('button[onclick*="modal-social"]');
+                
+                if (btn) {
+                    btn.style.background = "#FF5722"; // Laranja
+                    btn.innerText = "NOVA MENSAGEM! 🔔";
+                }
+            }
+        })
+        .catch(erro => console.error(erro));
+    }
+
+    // NOVA FUNÇÃO: Limpa o alerta quando abre o chat
+    function resetarAlerta() {
+        let btn = document.getElementById('btn-social-alerta');
+        if (!btn) btn = document.querySelector('button[onclick*="modal-social"]');
+
+        if (btn) {
+            btn.style.background = "#673AB7"; // Volta para Roxo
+            btn.innerText = "SOCIAL & CHAT 💬";
+        }
+    }
+
+    function iniciarAtualizacaoAutomatica() {
+        atualizarChat(); 
+        if (chatIntervalo) clearInterval(chatIntervalo);
+        chatIntervalo = setInterval(atualizarChat, 2000);
+    }
+
+    function abrirChat(id, nome) {
+        resetarAlerta(); // <--- Limpa ao abrir
+        document.getElementById('janela-chat').style.display = 'block';
+        document.getElementById('chat-titulo').innerText = "Chat com " + nome;
+        document.getElementById('destinatario_id').value = id;
+        iniciarAtualizacaoAutomatica();
+    }
+    
+    function abrirChatGlobal() {
+        resetarAlerta(); // <--- Limpa ao abrir
+        fecharModal('modal-social');
+        document.getElementById('janela-chat').style.display = 'block';
+        document.getElementById('chat-titulo').innerText = "Chat Global 🌎";
+        document.getElementById('destinatario_id').value = ""; 
+        iniciarAtualizacaoAutomatica();
+    }
+
+    function enviarMensagem(e) {
+        e.preventDefault();
+        const texto = document.getElementById('msg-input').value;
+        const dest = document.getElementById('destinatario_id').value;
+        if (!texto.trim()) return;
+
+        fetch('/api/chat', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ mensagem: texto, destinatario_id: dest ? dest : null, tipo: dest ? 'privado' : 'global' })
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.sucesso) { document.getElementById('msg-input').value = ''; atualizarChat(); }
+        });
+    }
+
+    // --- 3. SISTEMA DE VENDAS E MODAIS (Tudo mantido igual) ---
+    function mostrarAviso(titulo, mensagem, recarregar=false) {
+    document.getElementById('titulo-aviso').innerText = titulo;
+    document.getElementById('texto-aviso').innerText = mensagem;
+    document.getElementById('modal-aviso').style.display = 'flex';
+    
+    document.querySelector('#modal-aviso button').onclick = function() {
+        document.getElementById('modal-aviso').style.display = 'none';
+        if (recarregar) {
+            // Força o recarregamento limpando o cache do navegador
+            location.reload(true); 
+        }
+    };
+}
+    function prepararVenda(codigo, nome, estoqueMax) {
+        document.getElementById('cod-item-final').value = codigo;
+        document.getElementById('titulo-venda-final').innerText = "Vender " + nome;
+        document.getElementById('estoque-venda-final').innerText = estoqueMax + " kg";
+        document.getElementById('preco-venda-final').innerText = (PRECOS[codigo] || 0).toFixed(2);
+        const input = document.getElementById('input-venda-final');
+        input.max = estoqueMax; input.value = 1; calcularTotalFinal();
+        document.getElementById('modal-venda-final').style.display = 'flex';
+    }
+    function calcularTotalFinal() {
+        const codigo = document.getElementById('cod-item-final').value;
+        let qtd = parseInt(document.getElementById('input-venda-final').value);
+        if (isNaN(qtd) || qtd < 1) qtd = 0;
+        document.getElementById('total-venda-final').innerText = (qtd * (PRECOS[codigo] || 0)).toFixed(2);
+    }
+    function fecharVenda() { document.getElementById('modal-venda-final').style.display = 'none'; }
+    function confirmarVendaFinal() {
+    const item = document.getElementById('cod-item-final').value;
+    const qtd = document.getElementById('input-venda-final').value;
+    
+    fetch('/api/vender_produto', { 
+        method: 'POST', 
+        headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify({ item: item, qtd: qtd }) 
+    })
+    .then(r => r.json())
+    .then(d => { 
+        if (d.sucesso) {
+            fecharVenda(); 
+            // A mensagem volta a aparecer aqui
+            mostrarAviso("Sucesso! 💰", d.msg, true);
+        } else { 
+            mostrarAviso("Erro 🚫", d.erro); 
+        } 
+    });
+}
+
+
+function prepararVendaInsumo(codigo, nome, estoqueMax) {
+    // Preços de revenda realistas (50% da loja)
+    const precosInsumo = {'sal': 40, 'racao': 60, 'adubo': 75, 'veneno': 100, 'combustivel': 225};
+    
+    document.getElementById('cod-item-final').value = codigo;
+    document.getElementById('titulo-venda-final').innerText = "Vender " + nome;
+    document.getElementById('estoque-venda-final').innerText = estoqueMax + " un";
+    document.getElementById('preco-venda-final').innerText = (precosInsumo[codigo] || 0).toFixed(2);
+    
+    // Troca o alvo do botão confirmar para a rota de insumos
+    document.querySelector('#modal-venda-final .btn-confirmar').onclick = confirmarVendaInsumo;
+    
+    const input = document.getElementById('input-venda-final');
+    input.max = estoqueMax; input.value = 1; calcularTotalFinal();
+    document.getElementById('modal-venda-final').style.display = 'flex';
+}
+
+function confirmarVendaInsumo() {
+    const item = document.getElementById('cod-item-final').value;
+    const qtd = document.getElementById('input-venda-final').value;
+
+    fetch('/api/vender_insumo', { 
+        method: 'POST', 
+        headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify({ item: item, qtd: qtd }) 
+    })
+    .then(r => r.json()).then(d => { 
+        if (d.sucesso) { 
+            fecharVenda();
+            // AJUSTE AQUI: Use o mostrarAviso com 'true' para disparar a lógica da URL
+            mostrarAviso("Venda Concluída! 💰", "Insumos removidos do armazém.", true);
+        } 
+        else { 
+            mostrarAviso("Erro", d.erro); 
+        } 
+    });
+}
+
+    function abrirModal(id) { document.getElementById(id).style.display = "flex"; }
+    function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
+    function fecharSeClicarFora(event, id) { if (event.target.id === id) fecharModal(id); }
+
+// ASSIM QUE A PÁGINA CARREGA:
+window.addEventListener('load', function() {
+    const modalParaAbrir = localStorage.getItem('reabrirModal');
+    
+    if (modalParaAbrir) {
+        // Abre o modal automaticamente (Silo ou Armazém)
+        abrirModal(modalParaAbrir);
+        // Limpa a memória para não ficar abrindo toda hora sozinho
+        localStorage.removeItem('reabrirModal');
+    }
+});
+
+</script>

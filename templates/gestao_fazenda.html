@@ -7,6 +7,86 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/estilo.css') }}">
+    
+    <style>
+        /* LAYOUT LADO A LADO FORÇADO */
+        .view-section { 
+    display: none !important; 
+    pointer-events: none; /* Impede que clique em coisas invisíveis */
+}
+        #view-loja.active { 
+    display: block !important; 
+    padding-bottom: 50px; 
+    pointer-events: auto;
+}
+        #view-pastos.active, #view-cultivo.active, #view-sede.active { 
+    display: grid !important; 
+    grid-template-columns: 1fr 1fr;
+    gap: 10px; 
+    padding: 10px;
+    padding-bottom: 50px;
+    pointer-events: auto; /* Reativa o clique apenas na aba visível */
+}
+        
+        
+        /* Garante que os avisos fiquem na frente de qualquer outro modal */
+																				#modal-venda-final { z-index: 200000 !important; }
+																			#modal-aviso { z-index: 300000 !important; }
+																				#modal-aviso-custom { z-index: 300001 !important; }
+        /* Modais */
+        .modal-custom { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(3px); }
+        .box-custom { background:white; width:85%; max-width:320px; border-radius:20px; padding:20px; text-align:center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .mini-img-grao {
+    width: 30px; 
+    height: 30px; 
+    object-fit: contain; 
+    margin-bottom: 5px;
+    display: block;
+}
+    										.btn-acao-lista { text-align: left; padding: 12px; border: 1px solid #eee; background: white; margin-bottom: 8px; border-radius: 12px; display: flex; align-items: center; gap: 10px; font-weight: bold; color: #444; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .btn-acao-lista:active { transform: scale(0.98); background: #f0f0f0; }
+        .btn-modal { width: 100%; padding: 10px; border-radius: 10px; border: none; font-weight: bold; margin-top: 10px; }
+        .btn-confirmar { background: #2e7d32; color: white; }
+        .btn-cancelar { background: #eee; color: #555; }
+        
+    .mini-img-menu {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    margin-right: 10px;
+}
+
+.menu-item {
+    background: #ffffff;             /* Fundo branco sólido */
+    border: 1px solid #e0e0e0;       /* Borda fina cinza */
+    border-radius: 12px;             /* Bordas arredondadas */
+    padding: 10px 15px;
+    margin: 5px;                     /* Espaço entre os botões */
+    display: flex;
+    align-items: center;
+    justify-content: center;         /* Centraliza o conteúdo */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Sombra leve para dar profundidade */
+    font-weight: bold;
+    color: #444;
+    min-width: 100px;                /* Garante um tamanho mínimo */
+}
+    .menu-item.active {
+        background: #e8f5e9;
+        border-color: #2e7d32;
+        color: #2e7d32;
+    }
+
+    .menu-item:active {
+    transform: scale(0.95);          /* Efeito de apertar */
+    background: #f1f8e9;             /* Fundo levemente verde ao clicar */
+}
+.menu-item:hover {
+    background: #f5f5f5;
+}
+
+    </style>
 </head>
 <body>
 
@@ -16,60 +96,267 @@
             <div><div class="user-name">{{ user.nome }}</div><div style="font-size:10px; color:#f9a825; font-weight:bold;">{{ user.titulo }}</div></div>
         </div>
         <div style="text-align:right;">
-            <div class="money-badge">R$ {{ user.dinheiro|int if user else 0 }}</div>
-            <div class="time-box">
-                <i class="fas fa-calendar-day"></i> {{ user.dia }}/{{ user.mes }}/{{ user.ano }}
-            </div>
+            <div class="money-badge">R$ {{ user.dinheiro|int }}</div>
+            <div class="time-box"><i class="fas fa-calendar-day"></i> {{ user.dia }}/{{ user.mes }}/{{ user.ano }}</div>
         </div>
     </div>
 
-    <div class="farm-title" onclick="{% if not visitante %}renomearFazenda({{ fazenda.id }}){% endif %}">
+    <div class="farm-title" onclick="{% if not visitante %}renomearFazenda(){% endif %}">
         {{ fazenda.nome_personalizado }} <i class="fas fa-pen" style="font-size:14px; opacity:0.6"></i>
     </div>
+
+    <div id="msg-container">
     {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <div id="mensagens-sistema" style="padding: 0 15px; margin-top: 10px;">
-      {% for category, message in messages %}
-        <div class="alert-{{ category }}" style="
-            background: white; 
-            padding: 12px 15px; 
-            border-radius: 12px; 
-            margin-bottom: 8px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            border-left: 6px solid {% if category == 'success' %}#4CAF50{% else %}#f44336{% endif %};
-        ">
-            <span style="font-size: 13px; color: #333; font-weight: bold;">{{ message }}</span>
-            <span onclick="this.parentElement.remove()" style="font-size: 22px; color: #aaa; cursor: pointer; padding-left: 10px;">&times;</span>
-        </div>
-      {% endfor %}
+      {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert-{{ category }}" style="background: white; padding: 10px; margin: 10px; border-radius: 10px; border-left: 5px solid #4CAF50; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <b>{{ message }}</b>
+                <span onclick="this.parentElement.remove()" style="float:right; cursor:pointer;">&times;</span>
+            </div>
+          {% endfor %}
+      {% endif %}
+    {% endwith %}
     </div>
-  {% endif %}
-{% endwith %}
-    <div class="tabs">
-        <div class="tab-btn active" id="tab-sede" onclick="ver('sede', this)">🏠 Sede</div>
-        <div class="tab-btn" id="tab-pastos" onclick="ver('pastos', this)">🐄 Pastos</div>
-        <div class="tab-btn" id="tab-loja" onclick="ver('loja', this)">🏪 Loja</div>
-        <div class="tab-btn" onclick="window.location.href='/financeiro'">💰 Finanças</div>
-        <div class="tab-btn" onclick="window.location.href='/'">🗺️ Mapa</div>
+    
+        <div class="tabs" style="padding: 10px;">
+    <div class="menu-item" id="btn-sede" onclick="trocarAba('sede', this)">
+        <img src="/static/img/sede.png" class="mini-img-menu" onerror="this.src='/static/img/sal.png'"> Sede
     </div>
+    <div class="menu-item" id="btn-pastos" onclick="trocarAba('pastos', this)">
+        <img src="/static/img/pasto.png" class="mini-img-menu" onerror="this.src='/static/img/sal.png'"> Pastos
+    </div>
+    <div class="menu-item" id="btn-cultivo" onclick="trocarAba('cultivo', this)">
+        <img src="/static/img/cultivo.png" class="mini-img-menu" onerror="this.src='/static/img/sal.png'"> Cultivo
+    </div>
+    <div class="menu-item" id="btn-loja" onclick="trocarAba('loja', this)">
+        <img src="/static/img/loja.png" class="mini-img-menu" onerror="this.src='/static/img/sal.png'"> Loja
+    </div>
+    <div class="menu-item" onclick="location.href='/financeiro'">
+        <img src="/static/img/financas.png" class="mini-img-menu" onerror="this.src='/static/img/sal.png'"> Finanças
+    </div>
+    <div class="menu-item" onclick="location.href='/'">
+        <img src="/static/img/mapa.png" class="mini-img-menu" onerror="this.src='/static/img/sal.png'"> Mapa
+    </div>
+</div>
+
 
     {% if visitante %}<div class="visitante-banner">👁️ MODO VISITANTE</div>{% endif %}
 
     {% include 'partes/sede.html' %}
     {% include 'partes/pastos.html' %}
+    {% include 'partes/cultivos.html' %}
     {% include 'partes/loja.html' %}
     {% include 'partes/modais.html' %}
 
-    <script>
-        const CUSTOS = {{ custos|tojson }}; 
-        let loteAtual = 0; 
-        let animalAtual = 0;
-        const VISITANTE = {{ 'true' if visitante else 'false' }};
-    </script>
+    <div id="modal-acao-segura" class="modal-custom">
+        <div class="box-custom">
+            <h3 id="ms-titulo" style="margin:0 0 10px 0; color:#2e7d32;">...</h3>
+            <p id="ms-info" style="background:#f5f5f5; padding:5px; border-radius:5px; font-size:12px;">...</p>
+            <div id="ms-botoes" style="margin-top:15px;"></div>
+            <button onclick="fecharModal('modal-acao-segura')" style="background:none; border:none; color:#999; margin-top:10px; text-decoration:underline;">Fechar</button>
+        </div>
+    </div>
 
-    <script src="{{ url_for('static', filename='js/logica.js') }}"></script>
+    <div id="modal-confirmar" class="modal-custom">
+        <div class="box-custom">
+            <i class="fas fa-question-circle" style="font-size:40px; color:#ff9800;"></i>
+            <h3>Tem certeza?</h3>
+            <p id="txt-confirmacao" style="color:#666; font-size:13px;">...</p>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-modal btn-cancelar" onclick="fecharModal('modal-confirmar')">Cancelar</button>
+                <button id="btn-sim-confirmar" class="btn-modal btn-confirmar">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const VISITANTE = {{ 'true' if visitante else 'false' }};
+        const CUSTOS = {{ custos|tojson }}; 
+        let loteIdFocado = null;
+        let acaoPendente = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const abaSalva = localStorage.getItem('aba_ativa') || 'sede';
+            const btn = document.getElementById('btn-' + abaSalva);
+            if(btn) trocarAba(abaSalva, btn, false);
+        });
+
+        function trocarAba(aba, btn, salvar=true) {
+    document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+    // Mude de '.tab-btn' para '.menu-item' aqui embaixo:
+    document.querySelectorAll('.menu-item').forEach(b => b.classList.remove('active'));
+    
+    const div = document.getElementById('view-' + aba);
+    if(div) div.classList.add('active');
+    if(btn) btn.classList.add('active');
+    if(salvar) localStorage.setItem('aba_ativa', aba);
+}
+
+
+        function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
+        
+        
+        function abrirPasto(id) {
+    if(VISITANTE) return alert("Visitante não mexe.");
+    loteIdFocado = id;
+    
+    // Primeiro limpamos o modal para não mostrar dados do lote anterior
+    document.getElementById('ms-titulo').innerText = "Carregando...";
+    document.getElementById('ms-info').innerText = "";
+    document.getElementById('ms-botoes').innerHTML = "<p>Buscando informações...</p>";
+    
+    // FORÇAMOS A ABERTURA DO MODAL IMEDIATAMENTE
+    abrirModal('modal-acao-segura');
+
+    fetch('/api/pasto/' + id)
+    .then(r => r.json())
+    .then(d => {
+        document.getElementById('ms-titulo').innerText = d.nome;
+                let statusInfo = d.status ? d.status.toUpperCase() : "LIVRE";
+                if(d.cultivo) statusInfo += " (" + d.cultivo + ")";
+                document.getElementById('ms-info').innerText = statusInfo;
+
+                let html = "";
+                
+                // STATUS LIVRE/MATO (Aparece em ambas as abas com opções diferentes)
+                if(d.status === 'mato' || !d.status || d.status === 'livre') {
+                    // Opções de Cultivo
+                    html += btn('🪓', 'Limpar', 'R$ 500', "preparar('infra','limpeza')");
+                    html += btn('🚜', 'Arar', 'R$ 1.200', "preparar('infra','arar')");
+                    // Opção de Pasto
+                    html += `<hr style="margin:5px 0; border:0; border-top:1px dashed #ccc;">`;
+                    html += btn('🐮', 'Virar Pasto', 'R$ 2.000', "preparar('infra','criar_pasto')");
+                }
+                else if(d.status === 'arado') {
+                    html += `<p style="font-size:12px; color:#888;">Plantar:</p>`;
+                    html += btn('🌽', 'Milho', '', "preparar('infra','plantar','milho')");
+                    html += btn('🌱', 'Soja', '', "preparar('infra','plantar','soja')");
+                    html += btn('☕', 'Café', '', "preparar('infra','plantar','cafe')");
+                }
+                else if(d.status === 'plantado') {
+                    html += `<button class="btn-modal btn-confirmar" style="background:#FFC107; color:black;" onclick="window.location.href='/colher/${id}'">🚜 COLHER</button>`;
+                    html += btn('🔥', 'Destruir', '', "preparar('infra','gradear')");
+                }
+                else if(d.status === 'pasto') {
+                    if(d.animais && d.animais.length > 0) {
+                        html += `<p style="color:#d32f2f;">Venda os ${d.animais.length} bois.</p>`;
+                    } else {
+                        html += `<p style="color:green;">Pasto Vazio.</p>`;
+                        html += btn('🌱', 'Virar Lavoura', 'R$ 500', "preparar('infra','remover_pasto')");
+                    }
+                }
+                document.getElementById('ms-botoes').innerHTML = html;
+            });
+        }
+
+        function btn(icon, txt, price, action) {
+            return `<div class="btn-acao-lista" onclick="${action}">
+                        <span style="font-size:20px;">${icon}</span>
+                        <div style="flex:1;"><b>${txt}</b> <small style="color:#888;">${price}</small></div>
+                        <i class="fas fa-chevron-right" style="color:#ddd;"></i>
+                    </div>`;
+        }
+
+        function preparar(acao, tipo, item=null) {
+            acaoPendente = { acao, tipo, item };
+            let msg = "Confirmar ação?";
+            if(tipo === 'criar_pasto') msg = "Criar Pasto? (Irá para aba Pastos)";
+            if(tipo === 'remover_pasto') msg = "Remover Pasto? (Irá para aba Cultivo)";
+            
+            document.getElementById('txt-confirmacao').innerText = msg;
+            document.getElementById('btn-sim-confirmar').onclick = executar;
+            fecharModal('modal-acao-segura');
+            abrirModal('modal-confirmar');
+        }
+
+        function executar() {
+            fecharModal('modal-confirmar');
+            if(!acaoPendente) return;
+            const { acao, tipo, item } = acaoPendente;
+            
+            fetch('/api/lote/melhoria/' + loteIdFocado, {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({acao, tipo, item})
+            }).then(r => r.json()).then(d => {
+                if(d.sucesso) {
+                    if(tipo === 'criar_pasto') localStorage.setItem('aba_ativa', 'pastos');
+                    else if(tipo === 'remover_pasto') localStorage.setItem('aba_ativa', 'cultivo');
+                    mostrarAviso("Sucesso!", "Feito!", "sucesso", () => location.reload());
+                } else {
+                    mostrarAviso("Erro", d.erro || "Falha", "erro");
+                }
+            });
+        }
+        
+        function renomearFazenda() {
+            let novo = prompt("Novo nome:");
+            if(novo) {
+                fetch('/api/renomear/fazenda/{{ fazenda.id }}', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({nome:novo})
+                }).then(()=>location.reload());
+            }
+        }
+    
+    // --- FUNÇÃO PARA VENDER PRODUTOS DO SILO ---
+function venderProduto(item) {
+    let qtd = prompt("Quanto deseja vender?"); // Você pode trocar por um modal depois
+    if(!qtd) return;
+
+    fetch('/api/vender_produto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item: item, qtd: parseInt(qtd) })
+    })
+    .then(r => r.json())
+    .then(d => {
+        if(d.sucesso) {
+            // USANDO O SEU MODAL BONITO PARA NÃO FICAR ATRÁS
+            mostrarAviso("Sucesso!", d.msg, "sucesso", () => {
+                location.reload(); // ISSO ATUALIZA O SILO NA HORA
+            });
+        } else {
+            mostrarAviso("Erro", d.erro, "erro");
+        }
+    });
+}
+
+// --- FUNÇÕES DE MANEJO DO CURRAL (VACINAR E MOVER) ---
+// No seu gestao_fazenda.html (dentro do <script>)
+function vacinarAnimal(id) {
+    fetch('/api/animal/vacinar/' + id, { method: 'POST' })
+    .then(r => r.json())
+    .then(d => {
+        if(d.sucesso) {
+            // Usa o seu novo aviso do sede.js e recarrega a página
+            mostrarAviso("Sucesso! 💉", "Animal vacinado e saudável!", true); 
+        } else {
+            mostrarAviso("Erro 🚫", d.erro);
+        }
+    });
+}
+function prepararMovimentacao(animalId) {
+    let novoLote = prompt("Digite o ID do Lote (Pasto) de destino:");
+    if(novoLote) {
+        fetch('/api/animal/mover', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ animal_id: animalId, lote_id: parseInt(novoLote) })
+        })
+        .then(r => r.json())
+        .then(d => {
+            if(d.sucesso) {
+                // Mantém na aba pastos após recarregar
+                localStorage.setItem('aba_ativa', 'pastos'); 
+                mostrarAviso("Sucesso!", "O animal foi enviado para o pasto escolhido.", "sucesso", () => location.reload());
+            } else {
+                mostrarAviso("Erro", d.erro, "erro");
+            }
+        });
+    }
+}
+
+    </script>
 </body>
 </html>

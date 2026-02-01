@@ -19,12 +19,12 @@ NOMES_FAZENDA = ["Estrela do Norte", "Rio Madeira", "Santa Fé", "Boa Esperança
 NOMES_SITIO = ["Sítio Recanto", "Sítio Sossego", "Sítio Primavera", "Sítio Beira Rio"]
 NOMES_CHACARA = ["Chácara Vovó Ana", "Chácara Bela Vista", "Chácara Paraíso"]
 
-# --- CUSTOS OPERACIONAIS (Adicione ISTO antes de PRECOS_LOJA) ---
+# --- CUSTOS OPERACIONAIS ---
 CUSTOS = { 
     'limpeza': 500, 'arar': 1200, 'gradear': 800, 'adubacao': 1500, 
     'cerca_arame': 2000, 'cerca_eletrica': 3500, 'cerca_madeira': 5000, 
     'cocho_sal': 600, 'cocho_creep': 1800, 'agua_bebedouro': 2500, 'agua_represa': 12000,
-    # Custos de Plantio (Máquina + Mão de obra por lote)
+    # Custos de Plantio
     'plantio_milho': 2500, 'plantio_soja': 3000, 'plantio_arroz': 2800, 
     'plantio_feijao': 2000, 'plantio_algodao': 4000, 'plantio_cana': 3500, 
     'plantio_mandioca': 1500, 'plantio_cafe': 5000, 'plantio_cacau': 6000, 
@@ -32,36 +32,44 @@ CUSTOS = {
     'plantio_abacaxi': 2200, 'plantio_melancia': 1200, 'plantio_pimenta': 3000,
     # Estruturas e Veterinário
     'expandir_celeiro': 5000, 'expandir_silo': 8000, 'expandir_curral': 10000, 
-    'vacina': 50, 'inseminacao': 250 
+    'vacina': 50, 'inseminacao': 250, 'vacina_aftosa': 100,
+    'vacina_brucelose': 120,
+    'medicamento_geral': 60,
+    'suplemento_engorda': 80
 }
 
-# --- CONFIGURAÇÃO DE PREÇOS E ITENS (ATUALIZADO) ---
-# --- LISTAS DE PREÇOS (Mapeamento Completo da sua Lista) ---
+# --- PREÇOS ---
 PRECOS_LOJA = {
-    # Insumos (Incluindo Ração e Veneno)
     'sal': 80, 'racao': 120, 'adubo': 150, 'veneno': 200, 'combustivel': 450,
-    
-    # Grãos e Culturas
     'sem_milho': 200, 'sem_soja': 350, 'sem_arroz': 180, 'sem_feijao': 250,
     'sem_algodao': 400, 'sem_cana': 300, 'sem_mandioca': 150,
-    
-    # Frutas e Perenes
     'sem_cafe': 500, 'sem_cacau': 600, 'sem_acai': 450, 'sem_cupuacu': 400,
-    'sem_banana': 200, 'sem_abacaxi': 250, 'sem_melancia': 120, 'sem_pimenta': 300
+    'sem_banana': 200, 'sem_abacaxi': 250, 'sem_melancia': 120, 'sem_pimenta': 300,
+    'vacina_aftosa': 150,
+    'vacina_brucelose': 180,
+    'medicamento_geral': 90,
+    'suplemento_engorda': 120   
+}
+
+PRECOS_VENDA = {
+    'milho': 15, 'soja': 22, 'arroz': 18, 'feijao': 25,
+    'algodao': 35, 'cana': 12, 'mandioca': 10, 'cafe': 45,
+    'cacau': 50, 'acai': 30, 'cupuacu': 28, 'banana': 8,
+    'abacaxi': 15, 'melancia': 10, 'pimenta': 20,
+    'vacina_aftosa': 100,
+    'vacina_brucelose': 120,
+    'medicamento_geral': 60,
+    'suplemento_engorda': 80
 }
 
 TABELA_PRECOS = {
-    # Pecuária (Gado)
     'nelore': {'filhote': 1200, 'adulto': 3500}, 'angus': {'filhote': 1500, 'adulto': 4000},
     'girolando': {'filhote': 1300, 'adulto': 3800}, 'guzera': {'filhote': 1400, 'adulto': 3900},
     'brahman': {'filhote': 1600, 'adulto': 4200},
-    # Pequenos Animais
     'porco': {'filhote': 300, 'adulto': 900}, 'ovelha': {'filhote': 400, 'adulto': 1200},
     'cabra': {'filhote': 350, 'adulto': 1000}, 'cavalo': {'filhote': 2000, 'adulto': 8000},
-    # Aves
     'galinha': {'filhote': 20, 'adulto': 50}, 'pato': {'filhote': 25, 'adulto': 60}, 
     'peru': {'filhote': 40, 'adulto': 100},
-    # Peixes (Todos da lista)
     'tambaqui': {'filhote': 5, 'adulto': 60}, 'pirarucu': {'filhote': 50, 'adulto': 300},
     'pacu': {'filhote': 4, 'adulto': 50}, 'matrinxa': {'filhote': 6, 'adulto': 70},
     'jaraqui': {'filhote': 3, 'adulto': 40}, 'curimata': {'filhote': 3, 'adulto': 45},
@@ -69,7 +77,6 @@ TABELA_PRECOS = {
     'cachara': {'filhote': 11, 'adulto': 125}, 'tucunare': {'filhote': 8, 'adulto': 90},
     'piau': {'filhote': 4, 'adulto': 40}
 }
-
 
 PRECO_ARROBA = 295.0
 
@@ -90,9 +97,19 @@ class Usuario(db.Model):
     @property
     def estacao(self): return "Verão" if self.mes in [12,1,2] else ("Outono" if self.mes in [3,4,5] else ("Inverno" if self.mes in [6,7,8] else "Primavera") )
 
+class Amizade(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
+    amigo_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
+    status = db.Column(db.String(20), default='pendente')
+    
 class ChatMensagem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    usuario_nome = db.Column(db.String(50)); mensagem = db.Column(db.String(200))
+    remetente_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
+    destinatario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True) 
+    usuario_nome = db.Column(db.String(50))
+    mensagem = db.Column(db.String(200))
+    tipo = db.Column(db.String(20), default='global')
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
 class Transacao(db.Model):
@@ -110,7 +127,7 @@ class Fazenda(db.Model):
     nivel_curral = db.Column(db.Integer, default=1); nivel_celeiro = db.Column(db.Integer, default=1); nivel_silo = db.Column(db.Integer, default=1)
     tem_represa_geral = db.Column(db.Boolean, default=False)
     
-        # --- ESTOQUE DE SEMENTES E MUDAS ---
+    # Estoques Grãos
     est_milho = db.Column(db.Integer, default=0); est_soja = db.Column(db.Integer, default=0)
     est_arroz = db.Column(db.Integer, default=0); est_feijao = db.Column(db.Integer, default=0)
     est_algodao = db.Column(db.Integer, default=0); est_cana = db.Column(db.Integer, default=0)
@@ -119,20 +136,21 @@ class Fazenda(db.Model):
     est_cupuacu = db.Column(db.Integer, default=0); est_banana = db.Column(db.Integer, default=0)
     est_abacaxi = db.Column(db.Integer, default=0); est_melancia = db.Column(db.Integer, default=0)
     est_pimenta = db.Column(db.Integer, default=0)
-
-    # --- ESTOQUE DE INSUMOS (Aqui estão Veneno e Ração) ---
+    # Estoques Insumos
     est_sal = db.Column(db.Integer, default=0); est_racao = db.Column(db.Integer, default=0)
     est_adubo = db.Column(db.Integer, default=0); est_veneno = db.Column(db.Integer, default=0)
     est_combustivel = db.Column(db.Integer, default=0)
-
+    
+    est_vacina_aftosa = db.Column(db.Integer, default=0)
+    est_vacina_brucelose = db.Column(db.Integer, default=0)
+    est_medicamento_geral = db.Column(db.Integer, default=0)
+    est_suplemento_engorda = db.Column(db.Integer, default=0)
     lotes = db.relationship('Lote', backref='fazenda', lazy=True)
     
-    # Adicione estas linhas exatamente assim:
     cap_silo = db.Column(db.Integer, default=500)
     cap_armazem = db.Column(db.Integer, default=200)
     nivel_silo = db.Column(db.Integer, default=1)
     nivel_armazem = db.Column(db.Integer, default=1)
-
     
 class Lote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -151,15 +169,12 @@ class Animal(db.Model):
     onde_esta = db.Column(db.String(20), default="pasto"); vacinado = db.Column(db.Boolean, default=False)
     origem = db.Column(db.String(50), default="Leilão")
 
-# --- NOVO: CLASSE ANÚNCIO (O que faltava) ---
 class Anuncio(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     vendedor_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
     animal_id = db.Column(db.Integer, db.ForeignKey('animal.id'))
     valor = db.Column(db.Float)
     data = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    
-    # Relacionamentos
     vendedor = db.relationship('Usuario', backref='anuncios')
     animal = db.relationship('Animal', backref='anuncio', uselist=False)
 
@@ -225,97 +240,199 @@ def ver_fazenda(id):
     user_id = session.get('user_id')
     user = db.session.get(Usuario, user_id) if user_id else None
     
-    # Busca animais que estão no curral desta fazenda
+    # --- MANTIDO IGUAL ---
     gado_curral = Animal.query.join(Lote).filter(Lote.fazenda_id == id, Animal.onde_esta == 'curral').all()
     
-    # CORREÇÃO: Usar dono_id em vez de usuario_id
     visitante = True
     if user and f.dono_id == user.id:
         visitante = False
 
+    # --- LÓGICA SOCIAL ATUALIZADA ---
+    pedidos_pendentes = []
+    lista_amigos_final = [] # Criamos uma lista nova para guardar os NOMES
+    
+    if user:
+        # 1. Busca pedidos (Mantido)
+        pedidos_pendentes = Amizade.query.filter_by(amigo_id=user.id, status='pendente').all()
+        
+        # 2. Busca conexões (Mantido)
+        conexoes = Amizade.query.filter(
+            ((Amizade.usuario_id == user.id) | (Amizade.amigo_id == user.id)) & 
+            (Amizade.status == 'aceito')
+        ).all()
+
+        # 3. NOVO BLOCO: "Traduz" os IDs para Nomes Reais
+        for c in conexoes:
+            # Se eu sou o usuario_id, meu amigo é o amigo_id (e vice-versa)
+            id_do_amigo = c.amigo_id if c.usuario_id == user.id else c.usuario_id
+            
+            # Busca os dados desse amigo no banco de Usuários
+            amigo_obj = db.session.get(Usuario, id_do_amigo)
+            
+            if amigo_obj:
+                # Adiciona na lista final com ID e NOME para o HTML usar
+                lista_amigos_final.append({
+                    'id': amigo_obj.id,
+                    'nome': amigo_obj.nome
+                })
+
+    # No retorno, trocamos 'amigos=meus_amigos' por 'amigos=lista_amigos_final'
     return render_template('gestao_fazenda.html', 
                            fazenda=f, user=user, visitante=visitante, 
-                           custos=CUSTOS, gado_curral=gado_curral)
+                           custos=CUSTOS, gado_curral=gado_curral,
+                           pedidos=pedidos_pendentes, 
+                           amigos=lista_amigos_final) 
+        
 @app.route('/api/pasto/<int:lid>')
 def get_pasto(lid):
-    l = db.session.get(Lote, lid); animais = []
+    l = db.session.get(Lote, lid)
+    if not l:
+        return jsonify({'erro': 'Lote não encontrado'}), 404
+    
+    animais = []
     for a in l.animais:
         if a.onde_esta == 'pasto':
-            animais.append({'id':a.id, 'tipo':f"{a.raca}", 'fase': a.fase, 'sexo': a.sexo, 'idade': a.idade_meses, 'peso':a.peso, 'origem': a.origem, 'status': "Prenha" if a.prenha else ("Vacinado" if a.vacinado else "PENDENTE")})
+            animais.append({
+                'id': a.id, 
+                'tipo': f"{a.raca}", 
+                'fase': a.fase, 
+                'sexo': a.sexo, 
+                'idade': a.idade_meses, 
+                'peso': a.peso, 
+                'origem': a.origem, 
+                'status': "Prenha" if a.prenha else ("Vacinado" if a.vacinado else "PENDENTE")
+            })
+            
     info_plantio = f"{l.cultivo.capitalize()} (Mês {l.meses_cultivo})" if l.status == 'plantado' else ""
-    return jsonify({'nome':l.nome, 'status':l.status, 'cultivo':l.cultivo, 'info_plantio': info_plantio, 'cerca':l.cerca, 'cocho':l.cocho, 'agua':l.agua, 'animais':animais})
+    
+    # É essencial que o dicionário retorne todos esses campos para o JS não quebrar
+    return jsonify({
+        'nome': l.nome, 
+        'status': l.status, 
+        'cultivo': l.cultivo, 
+        'info_plantio': info_plantio, 
+        'cerca': l.cerca, 
+        'cocho': l.cocho, 
+        'agua': l.agua, 
+        'animais': animais
+    })
 
-# --- ROTA DE COMPRA ATUALIZADA (Substitui a antiga /api/loja/comprar) ---
 @app.route('/comprar_loja', methods=['POST'])
 def comprar_loja():
-    # Verifica se está logado
     if 'user_id' not in session:
-        return jsonify({'sucesso': False, 'mensagem': 'Não logado'})
+        return jsonify({'sucesso': False, 'erro': 'Não logado'}) # Troquei mensagem por erro
     
-    # Pega dados do banco
     usuario = db.session.get(Usuario, session['user_id'])
     fazenda = Fazenda.query.filter_by(dono_id=usuario.id).first()
     
-    # Pega dados do pedido
     dados = request.get_json()
-    item_cod = dados.get('item')           # Ex: 'sem_milho' ou 'veneno'
+    item_cod = dados.get('item')
     quantidade = int(dados.get('qtd', 1))
     
-    # 1. Verifica preço e existência
+    if "sem_" in item_cod:
+        total_atual = (fazenda.est_milho + fazenda.est_soja + fazenda.est_cafe + 
+                       fazenda.est_arroz + fazenda.est_feijao + fazenda.est_algodao + 
+                       fazenda.est_cana + fazenda.est_mandioca + fazenda.est_pimenta +
+                       fazenda.est_cacau + fazenda.est_acai + fazenda.est_cupuacu +
+                       fazenda.est_banana + fazenda.est_abacaxi + fazenda.est_melancia)
+
+        if total_atual + quantidade > fazenda.cap_silo:
+            return jsonify({'sucesso': False, 'erro': f'Silo sem espaço! Limite: {fazenda.cap_silo}kg'})
+    else:
+         # Lógica do Armazém
+         total_insumos = (fazenda.est_sal + fazenda.est_racao + fazenda.est_adubo + 
+                         fazenda.est_veneno + fazenda.est_combustivel +
+                         fazenda.est_vacina_aftosa + fazenda.est_vacina_brucelose +
+                         fazenda.est_medicamento_geral + fazenda.est_suplemento_engorda)
+         if total_insumos + quantidade > fazenda.cap_armazem:
+            return jsonify({'sucesso': False, 'erro': 'Armazém lotado!'})
+         
     preco_unitario = PRECOS_LOJA.get(item_cod)
     if not preco_unitario:
-        return jsonify({'sucesso': False, 'mensagem': f'Item {item_cod} não cadastrado'})
-    
+        return jsonify({'sucesso': False, 'erro': f'Item {item_cod} não cadastrado'})
+        
     custo_total = preco_unitario * quantidade
     
-    # 2. Verifica saldo
     if usuario.dinheiro < custo_total:
-        return jsonify({'sucesso': False, 'mensagem': 'Saldo insuficiente'})
+        return jsonify({'sucesso': False, 'erro': 'Saldo insuficiente'})
     
-    # 3. Lógica Inteligente: Descobre qual coluna do banco usar
-    # Se for semente (sem_milho), tira o 'sem_' -> fica 'est_milho'
-    # Se for insumo (veneno), usa direto -> fica 'est_veneno'
     nome_base = item_cod.replace('sem_', '')
     nome_coluna = f"est_{nome_base}" 
     
-    # Verifica se a "gaveta" existe na Fazenda
     if hasattr(fazenda, nome_coluna):
-        # Pega valor atual e soma
         estoque_atual = getattr(fazenda, nome_coluna)
         setattr(fazenda, nome_coluna, estoque_atual + quantidade)
-        
-        # Paga e Salva
         usuario.dinheiro -= custo_total
+        
+        # Aqui é o segredo: mudei para 'msg' para o sede.js entender
         db.session.commit()
-        return jsonify({'sucesso': True, 'novo_saldo': usuario.dinheiro})
+        return jsonify({
+            'sucesso': True, 
+            'msg': f'Compra realizada: {quantidade} un!', 
+            'novo_saldo': usuario.dinheiro
+        })
     else:
-        print(f"ERRO: Coluna {nome_coluna} não existe no banco!")
-        return jsonify({'sucesso': False, 'mensagem': 'Erro de estoque interno'})
+        return jsonify({'sucesso': False, 'erro': 'Erro de estoque interno'})
 
-@app.route('/api/lote/melhoria/<int:lid>', methods=['POST'])
-def melhoria(lid):
-    l = db.session.get(Lote, lid); u = db.session.get(Usuario, session['user_id']); d = request.json; acao = d.get('acao')
-    if l.fazenda.dono_id != u.id: return jsonify({'erro': 'Visitante!'})
-    if acao == 'infra':
-        tipo = d.get('tipo'); item = d.get('item'); custo = CUSTOS.get(f"{tipo}_{item}" if item else tipo, 0)
-        if u.dinheiro < custo: return jsonify({'erro':'Saldo insuficiente'})
-        u.dinheiro -= custo
-        if tipo == 'arar': l.status = 'arado'
-        elif tipo == 'plantar': l.cultivo = item; l.status='plantado'; l.meses_cultivo = 0
-        elif tipo == 'limpeza': l.status = 'limpo'
-        elif tipo == 'cerca': l.cerca = item;
-        elif tipo == 'cocho': l.cocho = item;
-        elif tipo == 'agua': l.agua = item;
-        elif tipo == 'gradear': l.status = 'limpo'; l.cultivo = None
-        registrar_transacao(u, f"Infra {tipo}", -custo, "infra")
-    elif acao == 'comprar_gado':
-        qtd = int(d.get('qtd')); fase = d.get('fase'); custo = TABELA_PRECOS[d.get('raca')][fase] * qtd
-        if u.dinheiro >= custo:
-            u.dinheiro -= custo; idade = 8 if fase == 'filhote' else 36; peso = 6.0 if fase == 'filhote' else 16.0
-            for _ in range(qtd): db.session.add(Animal(lote_id=l.id, raca=d.get('raca'), sexo=d.get('sexo'), fase=fase.capitalize(), peso=peso, idade_meses=idade, onde_esta='pasto'))
-            registrar_transacao(u, "Compra Gado", -custo, "compra")
-        else: return jsonify({'erro':'Sem saldo'})
-    db.session.commit(); return jsonify({'sucesso':True})
+# No seu arquivo app.py
+@app.route('/api/lote/melhoria/<int:lote_id>', methods=['POST'])
+def melhoria_lote(lote_id):
+    if 'user_id' not in session: 
+        return jsonify({'sucesso': False, 'erro': 'Sessão expirada. Faça login novamente.'})
+    
+    user = db.session.get(Usuario, session['user_id'])
+    
+    # TRAVA DE SEGURANÇA: Se o usuário não existe no banco, para aqui.
+    if user is None:
+        session.pop('user_id', None) # Limpa a sessão bugada
+        return jsonify({'sucesso': False, 'erro': 'Usuário não encontrado. Refaça o login.'})
+
+    lote = db.session.get(Lote, lote_id)
+    dados = request.get_json()
+    
+    # O segredo está em capturar o 'tipo' corretamente
+    tipo = dados.get('tipo') 
+
+    try:
+        # --- LÓGICA DE INFRAESTRUTURA RESTAURADA ---
+        if tipo == 'limpeza':
+            if user.dinheiro < 500: return jsonify({'sucesso': False, 'erro': 'Sem saldo'})
+            user.dinheiro -= 500
+            lote.status = 'livre'
+        
+        elif tipo == 'arar':
+            if user.dinheiro < 1200: return jsonify({'sucesso': False, 'erro': 'Sem saldo'})
+            user.dinheiro -= 1200
+            lote.status = 'arado'
+            lote.cultivo = None
+
+        elif tipo == 'cercar':
+            if user.dinheiro < 800: return jsonify({'sucesso': False, 'erro': 'Sem saldo'})
+            user.dinheiro -= 800
+            lote.status = 'cercado'
+
+        elif tipo == 'infra_pecuaria':
+            if user.dinheiro < 1500: return jsonify({'sucesso': False, 'erro': 'Sem saldo'})
+            user.dinheiro -= 1500
+            lote.status = 'pasto' # Terreno vira PASTO e aceita bois
+
+        elif tipo == 'remover_pasto_arar':
+            if len(lote.animais) > 0: return jsonify({'sucesso': False, 'erro': 'Retire os animais'})
+            if user.dinheiro < 1000: return jsonify({'sucesso': False, 'erro': 'Sem saldo'})
+            user.dinheiro -= 1000
+            lote.status = 'arado'
+
+        elif tipo == 'plantar':
+            item = dados.get('item')
+            lote.status = 'plantado'
+            lote.cultivo = item
+            lote.meses_cultivo = 0
+
+        db.session.commit()
+        return jsonify({'sucesso': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'sucesso': False, 'erro': str(e)})
 
 @app.route('/api/manejo', methods=['POST'])
 def manejo():
@@ -329,50 +446,97 @@ def manejo():
 
 @app.route('/api/renomear/<tipo>/<int:id>', methods=['POST'])
 def renomear(tipo, id):
+    if 'user_id' not in session: return jsonify({'sucesso': False})
     obj = db.session.get(Fazenda, id) if tipo == 'fazenda' else db.session.get(Lote, id)
-    if tipo == 'fazenda': obj.nome_personalizado = request.json.get('nome')
-    else: obj.nome = request.json.get('nome')
-    db.session.commit(); return jsonify({'sucesso':True})
+    if not obj: return jsonify({'sucesso': False, 'erro': 'Não encontrado'})
+    dados = request.get_json()
+    if tipo == 'fazenda':
+        obj.nome_personalizado = dados.get('nome')
+    else:
+        obj.nome = dados.get('nome')
+    db.session.commit()
+    return jsonify({'sucesso': True})
 
 @app.route('/api/avancar_tempo', methods=['POST'])
 def avancar():
     u = db.session.get(Usuario, session['user_id']); u.hora += 1
     if u.hora > 23: u.hora = 0; u.dia += 1
     db.session.commit(); return jsonify({'msg': 'Tempo avançou'})
-
-@app.route('/api/chat', methods=['GET', 'POST'])
-def chat():
-    if request.method == 'POST':
-        u = db.session.get(Usuario, session['user_id']); msg = ChatMensagem(usuario_nome=u.nome, mensagem=request.json.get('msg')); db.session.add(msg); db.session.commit()
-        return jsonify({'sucesso':True})
-    msgs = ChatMensagem.query.order_by(ChatMensagem.id.desc()).limit(20).all()
-    return jsonify([{'user':m.usuario_nome, 'msg':m.mensagem} for m in msgs[::-1]])
-
-# --- ROTAS DO MERCADO (NOVAS) ---
+        
+# --- ROTAS DO MERCADO ---
+# --- MERCADO ATUALIZADO COM IA ---
 @app.route('/mercado')
 def ver_mercado():
     if 'user_id' not in session: return redirect('/login')
-    anuncios = Anuncio.query.all()
-    return render_template('mercado.html', anuncios=anuncios, user=db.session.get(Usuario, session['user_id']))
     
+    anuncios_players = Anuncio.query.all()
+    
+    # Vendedores Oficiais (IA)
+    vendedores_ia = []
+    racas_ia = ['nelore', 'angus', 'girolando', 'porco', 'ovelha']
+    
+    for raca in racas_ia:
+        preco_base = TABELA_PRECOS[raca]['adulto']
+        vendedores_ia.append({
+            'id_ia': raca,
+            'vendedor_nome': "🚚 Fornecedor Oficial",
+            'raca': raca.capitalize(),
+            'peso': 15.0,
+            'fase': 'adulto',
+            'valor': preco_base * 1.1 
+        })
+        
+    return render_template('mercado.html', 
+                           anuncios=anuncios_players, 
+                           anuncios_ia=vendedores_ia,
+                           user=db.session.get(Usuario, session['user_id']))
 
+@app.route('/api/mercado/comprar_ia/<string:raca>', methods=['POST'])
+def comprar_animal_ia(raca):
+    if 'user_id' not in session: return jsonify({'erro': 'Login necessário'})
+    
+    comprador = db.session.get(Usuario, session['user_id'])
+    raca_key = raca.lower()
+    preco = TABELA_PRECOS[raca_key]['adulto'] * 1.1
+    
+    if comprador.dinheiro < preco:
+        return jsonify({'erro': 'Saldo insuficiente'})
+    
+    try:
+        comprador.dinheiro -= preco
+        # Pega a primeira fazenda e o primeiro lote disponível
+        pasto_destino = comprador.fazendas[0].lotes[0]
+        
+        novo_animal = Animal(
+            lote_id=pasto_destino.id,
+            raca=raca.capitalize(),
+            sexo='M',
+            fase='adulto',
+            peso=15.0,
+            idade_meses=24,
+            onde_esta='curral', # Todo animal comprado vai para o curral
+            origem="Fornecedor Oficial"
+        )
+        
+        db.session.add(novo_animal)
+        registrar_transacao(comprador, f"Compra IA: {raca}", -preco, "mercado")
+        db.session.commit()
+        return jsonify({'sucesso': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'erro': str(e)})
+            
 @app.route('/api/mercado/vender', methods=['POST'])
 def vender_animal():
     u = db.session.get(Usuario, session['user_id']); d = request.json
-    
-    # Recebe o ID de um animal (como referência) e a Quantidade desejada
     ref_animal = db.session.get(Animal, d.get('id_animal'))
     valor = float(d.get('valor'))
-    qtd = int(d.get('qtd', 1)) # Se não informar, vende só 1
+    qtd = int(d.get('qtd', 1))
 
     if ref_animal.lote.fazenda.dono_id != u.id: return jsonify({'erro':'Não autorizado'})
 
-    # Busca animais disponíveis (Mesmo pasto, mesma raça, mesma fase)
-    # Primeiro inclui o próprio animal clicado
     candidatos = [ref_animal]
-    
     if qtd > 1:
-        # Busca outros iguais no mesmo pasto
         outros = Animal.query.filter_by(
             lote_id=ref_animal.lote_id, 
             onde_esta='pasto', 
@@ -381,18 +545,15 @@ def vender_animal():
         ).filter(Animal.id != ref_animal.id).limit(qtd - 1).all()
         candidatos.extend(outros)
 
-    # Verifica se tem a quantidade pedida
     if len(candidatos) < qtd:
         return jsonify({'erro': f'Você só tem {len(candidatos)} animais desse tipo disponíveis para venda.'})
 
-    # Cria os anúncios
     for boi in candidatos:
         boi.onde_esta = 'venda'
         db.session.add(Anuncio(vendedor_id=u.id, animal_id=boi.id, valor=valor))
     
     db.session.commit()
     return jsonify({'sucesso':True})
-
 
 @app.route('/api/mercado/comprar/<int:aid>', methods=['POST'])
 def comprar_animal(aid):
@@ -403,8 +564,10 @@ def comprar_animal(aid):
     vendedor = anuncio.vendedor; animal = anuncio.animal
     comprador.dinheiro -= anuncio.valor; vendedor.dinheiro += anuncio.valor
     
+    # Destina o animal para a fazenda do comprador, mas mantém no CURRAL
     pasto_destino = comprador.fazendas[0].lotes[0] 
-    animal.lote_id = pasto_destino.id; animal.onde_esta = 'pasto'
+    animal.lote_id = pasto_destino.id 
+    animal.onde_esta = 'curral'  # Agora o animal chega pelo curral corretamente!
     
     db.session.delete(anuncio)
     registrar_transacao(comprador, f"Comprou {animal.raca}", -anuncio.valor, "mercado")
@@ -419,20 +582,18 @@ def cancelar_anuncio(aid):
         return jsonify({'sucesso':True})
     return jsonify({'erro':'Erro'})
 
-# --- ROTA DE EXPANSÃO (Sede) ---
 @app.route('/expandir_silo')
 def expandir_silo():
     user_id = session.get('user_id')
     u = db.session.get(Usuario, user_id)
     f = Fazenda.query.filter_by(dono_id=user_id).first()
-    
     custo = 5000 * f.nivel_silo
 
-    # CORREÇÃO: Checar o dinheiro no USUÁRIO (u), não na fazenda
     if u.dinheiro >= custo:
         u.dinheiro -= custo
         f.cap_silo += 500
         f.nivel_silo += 1
+        registrar_transacao(u, f"Melhoria: Expansão Silo Nível {f.nivel_silo}", -custo, "infra")
         db.session.commit()
         flash(f"Silo expandido! Capacidade: {f.cap_silo}kg", "success")
     else:
@@ -440,7 +601,6 @@ def expandir_silo():
     
     return redirect(url_for('ver_fazenda', id=f.id))
 
-# --- ROTA DE COLHEITA (Pastos) ---
 @app.route('/colher/<int:lote_id>')
 def colher(lote_id):
     lote = db.session.get(Lote, lote_id)
@@ -448,45 +608,259 @@ def colher(lote_id):
     
     colheita_estimada = 100
     total_atual = (f.est_milho + f.est_soja + f.est_cafe + f.est_arroz + f.est_feijao + f.est_algodao + f.est_cana + f.est_mandioca + f.est_pimenta)
-
+    
     if total_atual + colheita_estimada > f.cap_silo:
-        flash("Silo Lotado!", "warning")
+        flash("Atenção: Silo Lotado! Expanda o silo ou venda produtos para colher.", "warning")
         return redirect(url_for('ver_fazenda', id=f.id))
 
     if lote.cultivo:
-        # Adiciona ao estoque dinamicamente baseado no que estava plantado
         coluna = f'est_{lote.cultivo}'
         if hasattr(f, coluna):
             setattr(f, coluna, getattr(f, coluna) + colheita_estimada)
     
     lote.cultivo = None
-    lote.status = 'limpo'
+    lote.status = 'arado'
     db.session.commit()
+    
     flash(f"Colheita realizada!", "success")
     return redirect(url_for('ver_fazenda', id=f.id))
 
-@app.route('/vender_grao/<tipo>')
-def vender_grao(tipo):
+# --- ROTA DE VENDA SEGURA ---
+@app.route('/api/vender_produto', methods=['POST'])
+def vender_produto():
+    if 'user_id' not in session: return jsonify({'sucesso': False, 'erro': 'Login necessário'})
+    dados = request.get_json()
+    item = dados.get('item')
+    qtd_venda = int(dados.get('qtd'))
+    
+    u = db.session.get(Usuario, session['user_id'])
+    f = Fazenda.query.filter_by(dono_id=u.id).first()
+    
+    preco_unitario = PRECOS_VENDA.get(item)
+    coluna_estoque = f"est_{item}"
+    
+    if hasattr(f, coluna_estoque):
+        estoque_atual = getattr(f, coluna_estoque)
+        if estoque_atual >= qtd_venda:
+            setattr(f, coluna_estoque, estoque_atual - qtd_venda)
+            valor_venda = qtd_venda * preco_unitario
+            u.dinheiro += valor_venda
+            
+            registrar_transacao(u, f"Venda: {qtd_venda}kg de {item}", valor_venda, "venda")
+            db.session.commit()
+            # Salva no banco de dados
+            
+            flash(f"Venda realizada: {qtd_venda}kg de {item}!", "success")
+            return jsonify({'sucesso': True, 'msg': 'Venda realizada!'})
+    return jsonify({'sucesso': False, 'erro': 'Erro no estoque'})
+
+# --- ROTA DE PEDIR AMIZADE ---
+@app.route('/pedir_amizade/<int:amigo_id>')
+def pedir_amizade(amigo_id):
+    if 'user_id' not in session: return redirect(url_for('login'))
+    
+    usuario_atual = session['user_id']
+    if usuario_atual == amigo_id: return redirect(url_for('index'))
+
+    existe = Amizade.query.filter_by(usuario_id=usuario_atual, amigo_id=amigo_id).first()
+    if not existe:
+        novo_pedido = Amizade(usuario_id=usuario_atual, amigo_id=amigo_id, status='pendente')
+        db.session.add(novo_pedido)
+        db.session.commit()
+    
+    return redirect(request.referrer or url_for('index'))
+
+# --- ROTA API CHAT (CORRETA E ÚNICA) ---
+@app.route('/api/chat', methods=['GET', 'POST'])
+def chat():
+    user_id = session.get('user_id')
+    if not user_id: 
+        return jsonify({'erro': 'Não logado'}), 401
+    
+    # 1. ENVIO DE MENSAGEM (POST)
+    if request.method == 'POST':
+        u = db.session.get(Usuario, user_id)
+        dados = request.get_json()
+        
+        tipo_msg = dados.get('tipo', 'global')
+        dest_id = dados.get('destinatario_id')
+
+        if tipo_msg == 'privado' and not dest_id:
+            tipo_msg = 'global'
+
+        nova_msg = ChatMensagem(
+            remetente_id=u.id,
+            usuario_nome=u.nome,
+            mensagem=dados.get('mensagem'),
+            tipo=tipo_msg,
+            destinatario_id=dest_id
+        )
+        db.session.add(nova_msg)
+        db.session.commit()
+        return jsonify({'sucesso': True})
+    
+    # 2. LEITURA DE MENSAGENS (GET)
+    mensagens = ChatMensagem.query.filter(
+        (ChatMensagem.tipo == 'global') | 
+        (ChatMensagem.remetente_id == user_id) | 
+        (ChatMensagem.destinatario_id == user_id)
+    ).order_by(ChatMensagem.timestamp.desc()).limit(30).all()
+    
+    return jsonify([{
+        'nome': m.usuario_nome, 
+        'texto': m.mensagem, 
+        'tipo': m.tipo,
+        'remetente_id': m.remetente_id,
+        'destinatario_id': m.destinatario_id
+    } for m in mensagens])
+    
+@app.route('/aceitar_amizade/<int:id>')
+def aceitar_amizade(id):
+    pedido = db.session.get(Amizade, id)
+    if pedido and session.get('user_id') == pedido.amigo_id:
+        pedido.status = 'aceito'
+        db.session.commit()
+    return redirect(request.referrer or url_for('index'))
+
+@app.route('/recusar_amizade/<int:id>')
+def recusar_amizade(id):
+    pedido = db.session.get(Amizade, id)
+    if pedido and session.get('user_id') == pedido.amigo_id:
+        db.session.delete(pedido)
+        db.session.commit()
+    return redirect(request.referrer or url_for('index'))
+    
+# --- NOVAS ROTAS DE MANEJO DO CURRAL ---
+@app.route('/api/animal/vacinar/<int:animal_id>', methods=['POST'])
+def vacinar_animal(animal_id):
+    if 'user_id' not in session: 
+        return jsonify({'sucesso': False, 'erro': 'Login necessário'})
+    
+    usuario = db.session.get(Usuario, session['user_id'])
+    fazenda = Fazenda.query.filter_by(dono_id=usuario.id).first()
+    animal = db.session.get(Animal, animal_id)
+
+    # 1. SEGURANÇA: Verifica se o animal existe antes de mexer nele
+    if not animal:
+        return jsonify({'sucesso': False, 'erro': 'Animal não encontrado!'})
+
+    # 2. REALISMO: Verifica se o animal já está vacinado (para não gastar dose à toa)
+    if animal.vacinado:
+        return jsonify({'sucesso': False, 'erro': 'Este animal já foi vacinado!'})
+
+    # 3. CONSUMO: Verifica o estoque (Ajuste para est_medicamento se você resetou o banco)
+    # Se você ainda não resetou o banco, continue usando est_veneno
+    if fazenda.est_veneno < 1: 
+        return jsonify({'sucesso': False, 'erro': 'Falta medicamento no armazém! Vá até a loja.'})
+
+    try:
+        animal.vacinado = True
+        fazenda.est_veneno -= 1  # Gasta o item do seu Armazém
+        db.session.commit()
+        
+        # Retorna 'msg' para o seu sede.js ler corretamente
+        return jsonify({
+            'sucesso': True, 
+            'msg': f'Animal {animal.id} vacinado com sucesso! 1 dose consumida.'
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'sucesso': False, 'erro': f'Erro no banco: {str(e)}'})
+
+@app.route('/api/animal/mover', methods=['POST'])
+def mover_animal_novo():
+    if 'user_id' not in session: 
+        return jsonify({'sucesso': False, 'erro': 'Login necessário'})
+    
+    dados = request.get_json()
+    animal = db.session.get(Animal, dados.get('animal_id'))
+    lote = db.session.get(Lote, dados.get('lote_id'))
+    
+    if not animal:
+        return jsonify({'sucesso': False, 'erro': 'Animal não encontrado!'})
+
+    # --- NOVIDADE: REALISMO DE MANEJO ---
+    # Se o animal não estiver vacinado, ele não pode sair para o pasto
+    if not animal.vacinado:
+        return jsonify({
+            'sucesso': False, 
+            'erro': f'Manejo Pendente! O animal #{animal.id} precisa ser vacinado antes de ser enviado ao pasto.'
+        })
+
+    if not lote or lote.status != 'pasto':
+        return jsonify({'sucesso': False, 'erro': 'Este lote não é um pasto pronto!'})
+
+    try:
+        animal.lote_id = lote.id
+        animal.onde_esta = 'pasto'
+        db.session.commit()
+        
+        # Adicionamos a 'msg' para o seu sede.js mostrar o aviso de sucesso
+        return jsonify({
+            'sucesso': True, 
+            'msg': f'Animal #{animal.id} movido com sucesso para o pasto!'
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'sucesso': False, 'erro': f'Erro ao mover: {str(e)}'})
+
+@app.route('/expandir_armazem')
+def expandir_armazem():
     user_id = session.get('user_id')
     u = db.session.get(Usuario, user_id)
-    # CORREÇÃO: Buscar por dono_id
     f = Fazenda.query.filter_by(dono_id=user_id).first()
-    
-    if not f: f = Fazenda.query.first()
-    
-    # Lógica de Preços
-    precos = {'milho': 2, 'soja': 5, 'cafe': 12, 'arroz': 3, 'feijao': 4, 'algodao': 6, 'cana': 1, 'mandioca': 2, 'pimenta': 15}
-    valor_unidade = precos.get(tipo, 1)
-    
-    qtd = getattr(f, f'est_{tipo}')
-    if qtd > 0:
-        lucro = qtd * valor_unidade
-        u.dinheiro += lucro
-        setattr(f, f'est_{tipo}', 0)
-        db.session.commit()
-        flash(f"Venda realizada! +R$ {lucro}", "success")
+    custo = 2500 # Preço que já aparece no seu botão
 
+    if u.dinheiro >= custo:
+        u.dinheiro -= custo
+        f.cap_armazem += 300 # Aumenta a capacidade
+        f.nivel_armazem += 1
+        # Registra a saída no financeiro
+        registrar_transacao(u, f"Melhoria: Expansão Armazém Nível {f.nivel_armazem}", -custo, "infra")
+        db.session.commit()
+        flash(f"Armazém expandido! Nova Capacidade: {f.cap_armazem} un", "success")
+    else:
+        flash(f"Dinheiro insuficiente! Precisa de R$ {custo}", "danger")
+    
     return redirect(url_for('ver_fazenda', id=f.id))
+
+@app.route('/api/vender_insumo', methods=['POST'])
+def vender_insumo():
+    if 'user_id' not in session: return jsonify({'sucesso': False, 'erro': 'Login necessário'})
+    dados = request.get_json()
+    item = dados.get('item')
+    qtd_venda = int(dados.get('qtd'))
+    
+    u = db.session.get(Usuario, session['user_id'])
+    f = Fazenda.query.filter_by(dono_id=u.id).first()
+    
+    # Realismo: Venda de insumo paga metade do preço de compra da loja
+    precos_venda_insumo = {'sal': 40, 'racao': 60, 'adubo': 75, 'veneno': 100, 'combustivel': 225}
+    preco_unitario = precos_venda_insumo.get(item, 0)
+    coluna_estoque = f"est_{item}"
+    
+    if hasattr(f, coluna_estoque):
+        estoque_atual = getattr(f, coluna_estoque)
+        if estoque_atual >= qtd_venda:
+            setattr(f, coluna_estoque, estoque_atual - qtd_venda)
+            valor_recebido = qtd_venda * preco_unitario
+            u.dinheiro += valor_recebido
+            # Registra a entrada no financeiro
+            registrar_transacao(u, f"Venda Insumo: {qtd_venda} un de {item}", valor_recebido, "venda")
+            db.session.commit()
+            flash(f"Venda de insumo realizada! +R$ {valor_recebido}", "success")
+            return jsonify({'sucesso': True, 'msg': 'Venda realizada!'})
+    return jsonify({'sucesso': False, 'erro': 'Erro no estoque'})
+
+# --- ADICIONE ISSO PARA MATAR O FANTASMA NO PYTHON ---
+
+@app.after_request
+def add_header(response):
+    # Proíbe o navegador de guardar versões antigas da página (mata o fantasma)
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '-1'
+    return response
 if __name__ == '__main__':
     with app.app_context(): criar_mundo()
     app.run(debug=True, host='0.0.0.0', port=5000)

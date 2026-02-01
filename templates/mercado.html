@@ -8,12 +8,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/estilo.css') }}">
     
     <style>
-        /* Fundo puxando da pasta IMG nova */
         body { background: url('/static/img/bg_pasto.jpg') fixed center/cover; }
-        
         .market-container { max-width: 600px; margin: 20px auto; padding-bottom: 80px; }
         .market-header { text-align: center; background: rgba(255,255,255,0.95); padding: 20px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .back-btn { position: absolute; top: 20px; left: 20px; background: #2e7d32; color: white; padding: 10px 15px; border-radius: 50px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 5px rgba(0,0,0,0.2); }
+        .back-btn { position: absolute; top: 20px; left: 20px; background: #2e7d32; color: white; padding: 10px 15px; border-radius: 50px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 5px rgba(0,0,0,0.2); z-index: 10; }
         
         .offer-card { 
             background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; 
@@ -24,6 +22,10 @@
         .offer-info { flex: 1; }
         .offer-price { font-size: 18px; color: #2e7d32; font-weight: 900; }
         .seller-badge { background: #eee; padding: 2px 8px; border-radius: 4px; font-size: 10px; color: #555; }
+        
+        /* Estilo da IA */
+        .ia-section { background: rgba(255,255,255,0.9); padding: 20px; border-radius: 20px; margin-top: 30px; }
+        .card-ia { background: white; border-radius: 15px; padding: 12px; border-left: 5px solid #2e7d32; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
     </style>
 </head>
 <body>
@@ -33,66 +35,81 @@
     <div class="market-container">
         <div class="market-header">
             <h2 style="margin:0; color:#2e7d32;">📢 Leilão Global</h2>
-            <p style="color:#666; font-size:14px;">Compre gado de outros jogadores.</p>
             <div class="money-badge" style="display:inline-block; margin-top:10px;">
-                Seu Saldo: R$ {{ user.dinheiro|int }}
+                Saldo: R$ {{ user.dinheiro|int }}
             </div>
         </div>
 
+        <h3 style="color: #ff9800;"><i class="fas fa-users"></i> Ofertas da Comunidade</h3>
         {% if not anuncios %}
-            <div style="text-align:center; background:rgba(255,255,255,0.9); padding:40px; border-radius:15px;">
-                <i class="fas fa-box-open" style="font-size:50px; color:#ccc;"></i>
-                <p style="color:#777;">Nenhuma oferta no mercado hoje.</p>
-            </div>
+            <p style="text-align:center; color:#666; background:white; padding:15px; border-radius:10px;">Nenhum jogador vendendo agora.</p>
         {% endif %}
 
         {% for a in anuncios %}
         <div class="offer-card">
             <img src="/static/img/{{ a.animal.raca|lower }}.png" class="offer-img" onerror="this.src='/static/img/nelore.png'">
-            
             <div class="offer-info">
-                <div style="font-weight:bold; font-size:16px;">{{ a.animal.raca }} <small>({{ a.animal.sexo }})</small></div>
+                <div style="font-weight:bold;">{{ a.animal.raca }}</div>
                 <div style="font-size:12px; color:#555;">{{ a.animal.peso }}@ | {{ a.animal.fase }}</div>
                 <div class="seller-badge"><i class="fas fa-user"></i> {{ a.vendedor.nome }}</div>
             </div>
-
             <div style="text-align:right;">
-                <div class="offer-price">R$ {{ a.valor }}</div>
-                
+                <div class="offer-price">R$ {{ a.valor|int }}</div>
                 {% if a.vendedor_id == user.id %}
-                    <button class="btn-small" style="background:#ddd; color:#555; margin-top:5px; font-size:10px;">SEU ANÚNCIO</button>
-                    <button class="btn-small" style="background:#d32f2f; margin-top:5px;" onclick="cancelar({{ a.id }})">🗑️</button>
+                    <button class="btn-small" style="background:#d32f2f;" onclick="cancelar({{ a.id }})">🗑️</button>
                 {% else %}
-                    {% if user.dinheiro >= a.valor %}
-                        <button class="btn-small" style="background:#2e7d32; margin-top:5px;" onclick="comprar({{ a.id }})">COMPRAR</button>
-                    {% else %}
-                        <button class="btn-small" style="background:#ccc; cursor:not-allowed; margin-top:5px;">SEM SALDO</button>
-                    {% endif %}
+                    <button class="btn-small" style="background:#2e7d32;" onclick="comprar({{ a.id }})">COMPRAR</button>
                 {% endif %}
             </div>
         </div>
         {% endfor %}
+
+        <hr style="margin: 40px 0; border: 0; border-top: 2px dashed #ccc;">
+
+        <div class="ia-section">
+            <h3 style="color: #2e7d32; margin-top: 0;"><i class="fas fa-truck-moving"></i> Fornecedores Oficiais (IA)</h3>
+            <p style="font-size: 11px; color: #666; margin-bottom: 15px;">Animais entregues direto no seu <b>Curral</b>.</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                {% for item in anuncios_ia %}
+                <div class="card-ia">
+                    <img src="/static/img/{{ item.raca|lower }}.png" width="50" onerror="this.src='/static/img/nelore.png'">
+                    <h4 style="margin:5px 0; font-size:14px;">{{ item.raca }}</h4>
+                    <div style="color: #e65100; font-weight: 900; margin-bottom: 10px;">R$ {{ item.valor|int }}</div>
+                    <button class="btn-small" style="background:#2e7d32; width:100%;" onclick="comprarIA('{{ item.id_ia }}')">COMPRAR</button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 
     <script>
+        // Funções para Mercado de Jogadores
         function comprar(id) {
-            if(!confirm("Confirmar a compra?")) return;
+            if(!confirm("Confirmar compra do jogador?")) return;
             fetch(`/api/mercado/comprar/${id}`, { method: 'POST' })
-            .then(r => r.json())
-            .then(d => {
-                if(d.sucesso) {
-                    alert("✅ Compra realizada! O animal foi para sua fazenda.");
-                    window.location.href = "/";
-                } else {
-                    alert("❌ Erro: " + d.erro);
-                }
+            .then(r => r.json()).then(d => {
+                if(d.sucesso) { alert("Sucesso! Animal enviado para o Curral."); location.reload(); }
+                else { alert("Erro: " + d.erro); }
             });
         }
 
         function cancelar(id) {
-            if(!confirm("Remover anúncio?")) return;
-            fetch(`/api/mercado/cancelar/${id}`, { method: 'POST' })
-            .then(r => location.reload());
+            if(!confirm("Remover seu anúncio?")) return;
+            fetch(`/api/mercado/cancelar/${id}`, { method: 'POST' }).then(() => location.reload());
+        }
+
+        // Função para Mercado IA
+        function comprarIA(raca) {
+            if(!confirm("Comprar do Fornecedor Oficial?")) return;
+            fetch('/api/mercado/comprar_ia/' + raca, { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json()).then(d => {
+                if(d.sucesso) { alert("Sucesso! O animal chegou no seu CURRAL."); location.reload(); }
+                else { alert("Erro: " + (d.erro || "Saldo insuficiente")); }
+            });
         }
     </script>
 </body>

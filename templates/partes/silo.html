@@ -1,0 +1,61 @@
+<div id="modal-silo" class="modal-fundo" onclick="fecharSeClicarFora(event, 'modal-silo')">
+    <div class="modal-janela">
+        <span class="fechar-btn" onclick="fecharModal('modal-silo')">&times;</span>
+        <h2 class="modal-titulo">
+    <img src="/static/img/silo.png" style="height: 30px; vertical-align: middle; margin-right: 8px;"> 
+    Silo de Grãos
+</h2>
+        
+        <div style="background: #eee; border-radius: 10px; height: 20px; margin: 15px 0; position: relative; overflow: hidden; border: 1px solid #ddd;">
+            {% set total_estoque = (fazenda.est_milho + fazenda.est_soja + fazenda.est_cafe + fazenda.est_arroz + fazenda.est_feijao + fazenda.est_algodao + fazenda.est_cana + fazenda.est_mandioca + fazenda.est_pimenta + fazenda.est_cacau + fazenda.est_acai + fazenda.est_cupuacu + fazenda.est_banana + fazenda.est_abacaxi + fazenda.est_melancia) %}
+            {% set porcentagem = (total_estoque / fazenda.cap_silo) * 100 if fazenda.cap_silo > 0 else 0 %}
+            <div style="width: {{ porcentagem }}%; background: #4CAF50; height: 100%; transition: width 0.5s;"></div>
+            <small style="position: absolute; width: 100%; left: 0; top: 0; line-height: 20px; font-weight: bold; color: #333; text-align: center;">
+                {{ total_estoque }} / {{ fazenda.cap_silo }} kg
+            </small>
+        </div>
+
+        <div style="background: #f9f9f9; padding: 10px; border-radius: 10px; border: 1px solid #eee; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="text-align: left;">
+                <span style="font-size: 11px; color: #888; display: block;">Próximo Nível:</span>
+                <b style="color: #2e7d32;">+500 kg</b>
+            </div>
+            <a href="/expandir_silo" style="background: #ff9800; color: white; text-decoration: none; padding: 6px 12px; border-radius: 5px; font-size: 12px; font-weight: bold; box-shadow: 0 3px 0 #e68a00;">
+                EXPANDIR 🛠️
+            </a>
+        </div>
+
+        <hr style="border: 0; border-top: 1px dashed #eee; margin-bottom: 20px;">
+
+        <div class="grid-estoque">
+    {% set lista_completa = [
+        ('milho', 'Milho'), ('soja', 'Soja'), ('cafe', 'Café'), 
+        ('arroz', 'Arroz'), ('feijao', 'Feijão'), ('algodao', 'Algodão'), 
+        ('cana', 'Cana'), ('mandioca', 'Mandioca'), ('pimenta', 'Pimenta'),
+        ('cacau', 'Cacau'), ('acai', 'Açaí'), ('cupuacu', 'Cupuaçu'),
+        ('banana', 'Banana'), ('abacaxi', 'Abacaxi'), ('melancia', 'Melancia')
+    ] %}
+    
+    {% for tipo, nome in lista_completa %}
+        {% set qtd = fazenda['est_' ~ tipo] %}
+        {% if qtd > 0 %}
+        <div class="item-estoque">
+            {# Troca o emoji pela imagem pequena do grão #}
+            <img src="/static/img/{{ tipo }}.png" class="mini-img-grao" onerror="this.src='/static/img/milho.png'">
+            <span>{{ nome }}</span>
+            <b>{{ qtd }} kg</b>
+            
+            <button onclick="prepararVenda('{{ tipo }}', '{{ nome }}', {{ qtd }})" 
+                    style="background: #2e7d32; color: white; border: none; padding: 6px; border-radius: 6px; font-size: 10px; margin-top: 8px; width: 100%; font-weight: bold; cursor: pointer;">
+                VENDER 💰
+            </button>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+        
+        {% if (fazenda.est_milho + fazenda.est_soja + fazenda.est_cafe + fazenda.est_arroz + fazenda.est_feijao + fazenda.est_algodao + fazenda.est_cana + fazenda.est_mandioca + fazenda.est_pimenta) == 0 %}
+            <span class="aviso-vazio">O Silo está vazio! Plante algo. 🌱</span>
+        {% endif %}
+    </div>
+</div>
