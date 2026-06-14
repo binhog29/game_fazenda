@@ -55,28 +55,36 @@
         
         <div style="position: absolute; top: 0; left: 0; width: 100%; padding: 10px; display: flex; justify-content: space-between; align-items: flex-start; z-index: 2000; box-sizing: border-box; pointer-events: none;">
 
-            <a href="/perfil" style="background: rgba(30, 30, 30, 0.95); padding: 5px 12px 5px 5px; border-radius: 30px; display: flex; align-items: center; gap: 8px; text-decoration: none; color: white; border: 1px solid #555; pointer-events: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.3); max-width: 35%;">
-                <div style="width: 32px; height: 32px; background: #2e7d32; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid #fff;">
-                    👤
+            <div style="display: flex; flex-direction: column; gap: 5px; max-width: 35%;">
+                <a href="/perfil" style="background: rgba(30, 30, 30, 0.95); padding: 5px 12px 5px 5px; border-radius: 30px; display: flex; align-items: center; gap: 8px; text-decoration: none; color: white; border: 1px solid #555; pointer-events: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                    <div style="width: 32px; height: 32px; background: #2e7d32; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid #fff;">
+                        👤
+                    </div>
+                    <div style="line-height: 1.1; overflow: hidden;">
+                        <div style="font-weight: bold; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ user.nome }}</div>
+                        <div style="font-size: 9px; color: #FFD700;">{{ user.titulo }}</div>
+                    </div>
+                </a>
+                <div style="background: rgba(0, 0, 0, 0.85); padding: 5px 12px; border-radius: 20px; color: #4caf50; font-weight: bold; font-size: 12px; border: 1px solid #4caf50; pointer-events: auto; display: inline-flex; align-items: center; gap: 5px; width: fit-content;">
+                    <i class="fas fa-wallet" style="font-size: 10px;"></i> R$ {{ user.dinheiro|int }}
                 </div>
-                <div style="line-height: 1.1; overflow: hidden;">
-                    <div style="font-weight: bold; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ user.nome }}</div>
-                    <div style="font-size: 9px; color: #FFD700;">{{ user.titulo }}</div>
-                </div>
-            </a>
+            </div>
 
             <a href="/mercado" style="background: linear-gradient(180deg, #FF9800, #F57C00); color: white; padding: 8px 16px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 12px; border: 2px solid white; box-shadow: 0 4px 15px rgba(255, 152, 0, 0.5); pointer-events: auto; display: flex; align-items: center; gap: 5px; transform: translateY(2px); margin: 0 5px;">
                 <span>🔨</span> LEILÃO
             </a>
 
-            <div style="background: rgba(30, 30, 30, 0.95); padding: 6px 12px; border-radius: 15px; text-align: center; color: white; border: 1px solid #555; pointer-events: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.3); min-width: 80px;">
-                <div style="font-size: 9px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;">{{ user.estacao }}</div>
-                <div style="font-weight: bold; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 5px;">
-                    📅 {{ user.dia }}/{{ user.mes }}/{{ user.ano }}
+            <div style="background: rgba(30, 30, 30, 0.95); padding: 6px 12px; border-radius: 15px; text-align: center; color: white; border: 1px solid #555; pointer-events: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.3); min-width: 90px;">
+                <div style="font-size: 9px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;">
+                    <i class="fas fa-leaf" style="color: #4caf50;"></i> {{ user.estacao }}
+                </div>
+                <div id="relogio-real" style="font-size: 14px; font-weight: 900; color: #fff; margin-bottom: 2px;">00:00:00</div>
+                <div style="font-weight: bold; font-size: 10px; display: flex; align-items: center; justify-content: center; gap: 5px; color: #f9a825;">
+                     {{ user.dia }}/{{ user.mes }}/{{ user.ano }}
                 </div>
             </div>
-
         </div>
+
         <div class="bottom-dock pointer-events-auto">
             <div class="dock-item" onclick="window.location.href='/perfil'"><i class="fas fa-user-cog"></i><span>Perfil</span></div>
             <div class="dock-item active"><i class="fas fa-globe-americas"></i><span>Mapa</span></div>
@@ -163,6 +171,20 @@
         }
         
         function closeModal() { document.getElementById('sweet-modal').style.display = 'none'; }
+    
+        function atualizarRelogioReal() {
+            const agora = new Date();
+            const horas = String(agora.getHours()).padStart(2, '0');
+            const minutos = String(agora.getMinutes()).padStart(2, '0');
+            const segundos = String(agora.getSeconds()).padStart(2, '0');
+            
+            const el = document.getElementById('relogio-real');
+            if(el) el.innerText = horas + ":" + minutos + ":" + segundos;
+        }
+        
+        setInterval(atualizarRelogioReal, 1000);
+        atualizarRelogioReal();
     </script>
 </body>
+
 </html>

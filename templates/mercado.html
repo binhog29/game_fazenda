@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/estilo.css') }}">
     
     <style>
-        body { background: url('/static/img/bg_pasto.jpg') fixed center/cover; }
-        .market-container { max-width: 600px; margin: 20px auto; padding-bottom: 80px; }
+        body { background: url('/static/img/bg_pasto.jpg') fixed center/cover; margin: 0; font-family: 'Nunito', sans-serif; }
+        .market-container { max-width: 600px; margin: 20px auto; padding: 10px; padding-bottom: 80px; }
         .market-header { text-align: center; background: rgba(255,255,255,0.95); padding: 20px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .back-btn { position: absolute; top: 20px; left: 20px; background: #2e7d32; color: white; padding: 10px 15px; border-radius: 50px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 5px rgba(0,0,0,0.2); z-index: 10; }
         
@@ -18,14 +18,24 @@
             display: flex; align-items: center; justify-content: space-between;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-left: 5px solid #ff9800;
         }
-        .offer-img { width: 70px; height: 70px; object-fit: contain; margin-right: 15px; }
+        .offer-img { width: 60px; height: 60px; object-fit: contain; margin-right: 15px; }
         .offer-info { flex: 1; }
         .offer-price { font-size: 18px; color: #2e7d32; font-weight: 900; }
         .seller-badge { background: #eee; padding: 2px 8px; border-radius: 4px; font-size: 10px; color: #555; }
         
-        /* Estilo da IA */
         .ia-section { background: rgba(255,255,255,0.9); padding: 20px; border-radius: 20px; margin-top: 30px; }
-        .card-ia { background: white; border-radius: 15px; padding: 12px; border-left: 5px solid #2e7d32; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+        .card-ia { background: white; border-radius: 15px; padding: 12px; border: 1px solid #ddd; text-align: center; transition: 0.2s; }
+        .card-ia:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        .seletor-compra { display: flex; gap: 5px; margin: 10px 0; }
+        .seletor-compra select { flex: 1; padding: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 11px; background: #f9f9f9; }
+        .money-badge { background: #2e7d32; color: white; padding: 8px 20px; border-radius: 50px; font-weight: 900; }
+        
+        /* Modal Sweet (Igual ao do Mapa) */
+        #sweet-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .sweet-box { background: white; width: 85%; max-width: 320px; border-radius: 20px; padding: 25px; text-align: center; border: 4px solid #2e7d32; position: relative; }
+        .sweet-btn { background: #2e7d32; border: none; width: 100%; padding: 12px; border-radius: 12px; color: white; font-weight: 900; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .close-sweet { position: absolute; top: 10px; right: 15px; font-size: 20px; color: #aaa; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -43,74 +53,280 @@
         <h3 style="color: #ff9800;"><i class="fas fa-users"></i> Ofertas da Comunidade</h3>
         {% if not anuncios %}
             <p style="text-align:center; color:#666; background:white; padding:15px; border-radius:10px;">Nenhum jogador vendendo agora.</p>
+        {% else %}
+            {% for a in anuncios %}
+            <div class="offer-card">
+                <img src="/static/img/{{ a.animal.raca|lower }}.png" class="offer-img" onerror="this.src='/static/img/nelore.png'">
+                <div class="offer-info">
+                    <div style="font-weight:bold;">{{ a.animal.raca }}</div>
+                    <div style="font-size:12px; color:#555;">{{ a.animal.peso }}@ | {{ a.animal.fase }} | {{ a.animal.sexo }}</div>
+                    <div class="seller-badge"><i class="fas fa-user"></i> {{ a.vendedor.nome }}</div>
+                </div>
+                <div style="text-align:right;">
+    <div class="offer-price">R$ {{ a.valor|int }}</div>
+    {% if a.vendedor_id == user.id %}
+           <button class="btn-lixeira" onclick="cancelar({{ a.id }})">
+    <img src="/static/img/lixeira.png" style="width: 20px;">
+</button>
+            {% else %}
+        <button style="background:#2e7d32; color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold;" 
+                onclick="abrirModalCompraComunidade({{ a.id }}, '{{ a.animal.raca }}', {{ a.valor }}, 10)"> COMPRAR
+        </button>
+    {% endif %}
+</div>
+
+            </div>
+            {% endfor %}
         {% endif %}
-
-        {% for a in anuncios %}
-        <div class="offer-card">
-            <img src="/static/img/{{ a.animal.raca|lower }}.png" class="offer-img" onerror="this.src='/static/img/nelore.png'">
-            <div class="offer-info">
-                <div style="font-weight:bold;">{{ a.animal.raca }}</div>
-                <div style="font-size:12px; color:#555;">{{ a.animal.peso }}@ | {{ a.animal.fase }}</div>
-                <div class="seller-badge"><i class="fas fa-user"></i> {{ a.vendedor.nome }}</div>
-            </div>
-            <div style="text-align:right;">
-                <div class="offer-price">R$ {{ a.valor|int }}</div>
-                {% if a.vendedor_id == user.id %}
-                    <button class="btn-small" style="background:#d32f2f;" onclick="cancelar({{ a.id }})">🗑️</button>
-                {% else %}
-                    <button class="btn-small" style="background:#2e7d32;" onclick="comprar({{ a.id }})">COMPRAR</button>
-                {% endif %}
-            </div>
-        </div>
-        {% endfor %}
-
-        <hr style="margin: 40px 0; border: 0; border-top: 2px dashed #ccc;">
 
         <div class="ia-section">
             <h3 style="color: #2e7d32; margin-top: 0;"><i class="fas fa-truck-moving"></i> Fornecedores Oficiais (IA)</h3>
-            <p style="font-size: 11px; color: #666; margin-bottom: 15px;">Animais entregues direto no seu <b>Curral</b>.</p>
+            <p style="font-size: 11px; color: #666; margin-bottom: 15px;">Entregas via <b>Caminhão Boiadeiro</b> ou <b>Transporte de Alevinos</b>.</p>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                {% for item in anuncios_ia %}
-                <div class="card-ia">
-                    <img src="/static/img/{{ item.raca|lower }}.png" width="50" onerror="this.src='/static/img/nelore.png'">
-                    <h4 style="margin:5px 0; font-size:14px;">{{ item.raca }}</h4>
-                    <div style="color: #e65100; font-weight: 900; margin-bottom: 10px;">R$ {{ item.valor|int }}</div>
-                    <button class="btn-small" style="background:#2e7d32; width:100%;" onclick="comprarIA('{{ item.id_ia }}')">COMPRAR</button>
-                </div>
-                {% endfor %}
-            </div>
+    {% for item in anuncios_ia %}
+    <div class="card-ia">
+    <img src="/static/img/{{ item.id_ia }}.png" style="width: 80px; height: 60px; object-fit: contain;" onerror="this.src='/static/img/nelore.png'">
+    <h4 style="text-transform: capitalize;">{{ item.id_ia }}</h4>
+    
+    <div class="seletor-compra">
+        <select id="fase-{{ item.id_ia }}" onchange="atualizarPrecoDinamico('{{ item.id_ia }}')">
+            <option value="filhote">Filhote</option>
+            <option value="adulto" selected>Adulto</option>
+        </select>
+        <select id="sexo-{{ item.id_ia }}">
+            <option value="M">Macho</option>
+            <option value="F">Fêmea</option>
+        </select>
+    </div>
+
+    <div style="color: #2e7d32; font-weight: 900;">
+        R$ <span id="val-{{ item.id_ia }}">{{ item.valor|int }}</span>
+    </div>
+    
+    <button class="btn-small" onclick="comprarIAv2('{{ item.id_ia }}')">COMPRAR</button>
+</div>
+    {% endfor %}
+</div>
+
+        </div>
+    </div>
+
+    <div id="sweet-modal">
+        <div class="sweet-box">
+            <i class="fas fa-times close-sweet" onclick="closeModal()"></i>
+            <h3 id="sw-title" style="margin-top:0; color:#2e7d32;"></h3>
+            <div id="sw-text"></div>
+            <div id="sw-actions"></div>
         </div>
     </div>
 
     <script>
-        // Funções para Mercado de Jogadores
-        function comprar(id) {
-            if(!confirm("Confirmar compra do jogador?")) return;
-            fetch(`/api/mercado/comprar/${id}`, { method: 'POST' })
-            .then(r => r.json()).then(d => {
-                if(d.sucesso) { alert("Sucesso! Animal enviado para o Curral."); location.reload(); }
-                else { alert("Erro: " + d.erro); }
-            });
-        }
+    let ofertaFocadaId = null;
+    let precoUnitarioOferta = 0;
+    // Converte a tabela do Python para um objeto que o JS entende
+    const PRECOS_BASE = {{ TABELA_PRECOS|tojson }};
 
-        function cancelar(id) {
-            if(!confirm("Remover seu anúncio?")) return;
-            fetch(`/api/mercado/cancelar/${id}`, { method: 'POST' }).then(() => location.reload());
-        }
+    function atualizarPrecoDinamico(id) {
+        const fase = document.getElementById('fase-' + id).value;
+        const precoOriginal = PRECOS_BASE[id][fase];
+        const precoComMargem = Math.floor(precoOriginal * 1.1);
+        document.getElementById('val-' + id).innerText = precoComMargem.toLocaleString('pt-BR');
+    }
 
-        // Função para Mercado IA
-        function comprarIA(raca) {
-            if(!confirm("Comprar do Fornecedor Oficial?")) return;
-            fetch('/api/mercado/comprar_ia/' + raca, { 
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            })
-            .then(r => r.json()).then(d => {
-                if(d.sucesso) { alert("Sucesso! O animal chegou no seu CURRAL."); location.reload(); }
-                else { alert("Erro: " + (d.erro || "Saldo insuficiente")); }
-            });
+    // Substitua sua função de compra (ex: comprarIAv2) por esta:
+    function comprarIAv2(id_especie) {
+    // CAPTURA O QUE ESTÁ SELECIONADO NOS SELETORES DA PÁGINA
+    const faseSelecionada = document.getElementById('fase-' + id_especie).value;
+    const sexoSelecionado = document.getElementById('sexo-' + id_especie).value;
+    
+    const peixes = ['tambaqui', 'pirarucu', 'pacu', 'matrinxa', 'jaraqui', 'curimata', 'surubim', 'pintado', 'cachara', 'tucunare', 'piau'];
+    let localObrigatorio = 'curral';
+    let labelExibicao = '🪵 Curral (Padrão)';
+    
+    if (peixes.includes(id_especie)) { 
+        localObrigatorio = 'represa'; 
+        labelExibicao = '🐟 Represa (Obrigatório)'; 
+    } else if (id_especie === 'porco') { 
+        localObrigatorio = 'chiqueiro'; 
+        labelExibicao = '🐖 Chiqueiro (Obrigatório)'; 
+    } else if (id_especie === 'galinha') { 
+        localObrigatorio = 'galinheiro'; 
+        labelExibicao = '🐔 Galinheiro (Obrigatório)'; 
+    }
+
+    const htmlLogistica = `
+        <div style="padding: 10px; text-align: left;">
+            <p style="font-size: 13px; color: #666;">Quantidade:</p>
+            <input type="number" id="qtd_modal" value="1" min="1" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ccc; margin-bottom: 15px;">
+            
+            <p style="font-size: 13px; color: #666;">Destino da Carga:</p>
+            <select id="log_fazenda" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #2e7d32; margin-bottom: 15px;">
+                {% for f in user.fazendas %}
+                    <option value="{{ f.id }}">{{ f.nome_personalizado }}</option>
+                {% endfor %}
+            </select>
+
+            <p style="font-size: 13px; color: #666;">Ponto de Desembarque:</p>
+            <select id="log_local" style="width: 100%; padding: 12px; border-radius: 10px; border: 2px solid #795548; background: #f0f0f0; pointer-events: none; font-weight: bold; color: #333;">
+                <option value="${localObrigatorio}">${labelExibicao}</option>
+            </select>
+
+            <button class="sweet-btn" onclick="confirmarPedidoIA('${id_especie}', '${faseSelecionada}', '${sexoSelecionado}')">CONFIRMAR COMPRA</button>
+        </div>
+    `;
+    
+    showSweet("Logística de Entrega", htmlLogistica, "");
+}
+
+    
+function confirmarPedidoIA(id, fase, sexo) {
+    const qtd = document.getElementById('qtd_modal').value;
+    const fazendaId = document.getElementById('log_fazenda').value;
+    
+    // Captura o preço que aparece na tela (ex: 2.750) e limpa os pontos para o Python entender
+    const precoTexto = document.getElementById('val-' + id).innerText.replace('.', '').replace(',', '.');
+    const precoUnitario = parseFloat(precoTexto);
+
+    fetch('/api/mercado/comprar_v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            id: id, 
+            fase: fase, 
+            sexo: sexo, 
+            qtd: parseInt(qtd), 
+            preco: precoUnitario, // ENVIA O PREÇO REAL DA TELA
+            fazenda_id: parseInt(fazendaId), 
+            local: document.getElementById('log_local').value 
+        })
+    })
+    .then(r => r.json()).then(d => {
+        if (d.sucesso) location.reload();
+        else alert(d.erro);
+    });
+}
+
+
+    function abrirModalCompraComunidade(id, raca, preco, maxDisponivel) {
+    ofertaFocadaId = id;
+    precoUnitarioOferta = preco;
+
+    const htmlCompra = `
+        <div style="padding: 10px; text-align: left;">
+            <p style="font-size: 14px; font-weight: bold; color: #2e7d32;">Animal: ${raca}</p>
+            <p style="font-size: 12px; color: #666;">Preço Unitário: R$ ${preco.toLocaleString()}</p>
+            <hr>
+            <p style="font-size: 13px; color: #333;">Escolha a quantidade:</p>
+            <input type="number" id="qtd_leilao" value="1" min="1" max="${maxDisponivel}" 
+                   style="width: 100%; padding: 12px; border-radius: 10px; border: 2px solid #ff9800; font-size: 16px; font-weight: bold;"
+                   oninput="document.getElementById('total_leilao').innerText = (this.value * ${preco}).toLocaleString()">
+            
+            <div style="margin-top: 15px; background: #f1f8e9; padding: 10px; border-radius: 8px; text-align: center;">
+                <b style="color: #2e7d32;">Total: R$ <span id="total_leilao">${preco.toLocaleString()}</span></b>
+            </div>
+            
+            <button class="sweet-btn" style="background: #2e7d32; margin-top: 15px;" onclick="executarCompraLeilao()">PAGAR E RECEBER</button>
+        </div>
+    `;
+
+    showSweet("Confirmar Compra no Leilão", htmlCompra, "");
+}
+    
+    function executarCompraLeilao() {
+    const qtd = document.getElementById('qtd_leilao').value;
+    // Pega o nome do animal que está no título do modal
+    const raca = document.getElementById('sw-title').innerText.replace('Confirmar Compra no ', '');
+
+    // 1. Fechamos o modal de quantidade
+    closeModal(); 
+
+    // 2. Abrimos a tela de logística para escolher a fazenda de destino
+    const htmlLogisticaLeilao = `
+        <div style="padding: 10px; text-align: left;">
+            <p style="font-size: 13px; color: #666;">Carga: <b>${qtd}x ${raca}</b></p>
+            
+            <p style="font-size: 13px; color: #666; margin-top:10px;">Enviar para qual fazenda?</p>
+            <select id="log_fazenda_leilao" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #2e7d32; margin-bottom: 15px;">
+                {% for f in user.fazendas %}
+                    <option value="{{ f.id }}">{{ f.nome_personalizado }}</option>
+                {% endfor %}
+            </select>
+
+            <p style="font-size: 13px; color: #666;">Ponto de Desembarque:</p>
+            <input type="text" value="Curral (Obrigatório)" disabled style="width: 100%; padding: 12px; border-radius: 10px; border: 2px solid #795548; background: #f0f0f0; font-weight: bold; color: #333;">
+            
+            <button class="sweet-btn" style="background:#2e7d32; margin-top:20px;" onclick="finalizarPagamentoLeilao(${qtd})">CONFIRMAR E PAGAR</button>
+        </div>
+    `;
+    
+    showSweet("Logística de Recebimento", htmlLogisticaLeilao, "");
+}
+
+function finalizarPagamentoLeilao(qtd) {
+    // Pegamos o ID da fazenda selecionada no modal de logística
+    const fazendaId = document.getElementById('log_fazenda_leilao').value;
+
+    fetch('/api/mercado/comprar_leilao', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            anuncio_id: ofertaFocadaId, // Variável global que salvamos no início
+            quantidade: parseInt(qtd),
+            fazenda_id: parseInt(fazendaId)
+        })
+    })
+    .then(r => r.json()).then(d => {
+        if (d.sucesso) {
+            // MOSTRA O CAMINHÃO E RECARREGA A PÁGINA
+            showSweet("Compra Realizada! ✅", `
+                <div style="text-align:center;">
+                    <img src="/static/img/caminhaboiadeiro.png" style="width:100%; border-radius:15px; border:3px solid #2e7d32; margin-bottom:15px;">
+                    <p style="color: green; font-weight: bold;">${d.msg}</p>
+                </div>`, `<button class="sweet-btn" onclick="location.reload()">VER MEUS ANIMAIS</button>`);
+        } else {
+            // Se houver erro (ex: falta de dinheiro), avisa o jogador
+            alert("Erro na Compra: " + d.erro);
         }
-    </script>
+    }).catch(err => {
+        console.error(err);
+        alert("Erro técnico: Verifique se a rota /api/mercado/comprar_leilao foi adicionada ao app.py");
+    });
+}
+
+    function cancelar(anuncioId) {
+    if (!confirm("Deseja realmente remover este anúncio do leilão?")) return;
+
+    fetch('/api/mercado/cancelar', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ anuncio_id: anuncioId })
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.sucesso) {
+            location.reload(); 
+        } else {
+            alert("Erro: " + d.erro);
+        }
+    })
+    .catch(err => {
+        // Esta é a mensagem que você está vendo agora
+        alert("O servidor não respondeu. Reinicie o Python no Termux!"); 
+    });
+}
+
+
+
+// Mantém as funções showSweet, closeModal, comprar e cancelar que já funcionam
+function showSweet(title, text, actionsHtml) {
+    document.getElementById('sw-title').innerText = title;
+    document.getElementById('sw-text').innerHTML = text;
+    document.getElementById('sw-actions').innerHTML = actionsHtml;
+    document.getElementById('sweet-modal').style.display = 'flex';
+}
+    function closeModal() { document.getElementById('sweet-modal').style.display = 'none'; }
+</script>
+
 </body>
 </html>

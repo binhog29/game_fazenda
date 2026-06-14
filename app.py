@@ -62,21 +62,36 @@ PRECOS_VENDA = {
     'suplemento_engorda': 80
 }
 
+# Tabela com TODOS os 23 animais e peixes citados
 TABELA_PRECOS = {
-    'nelore': {'filhote': 1200, 'adulto': 3500}, 'angus': {'filhote': 1500, 'adulto': 4000},
-    'girolando': {'filhote': 1300, 'adulto': 3800}, 'guzera': {'filhote': 1400, 'adulto': 3900},
-    'brahman': {'filhote': 1600, 'adulto': 4200},
-    'porco': {'filhote': 300, 'adulto': 900}, 'ovelha': {'filhote': 400, 'adulto': 1200},
-    'cabra': {'filhote': 350, 'adulto': 1000}, 'cavalo': {'filhote': 2000, 'adulto': 8000},
-    'galinha': {'filhote': 20, 'adulto': 50}, 'pato': {'filhote': 25, 'adulto': 60}, 
-    'peru': {'filhote': 40, 'adulto': 100},
-    'tambaqui': {'filhote': 5, 'adulto': 60}, 'pirarucu': {'filhote': 50, 'adulto': 300},
-    'pacu': {'filhote': 4, 'adulto': 50}, 'matrinxa': {'filhote': 6, 'adulto': 70},
-    'jaraqui': {'filhote': 3, 'adulto': 40}, 'curimata': {'filhote': 3, 'adulto': 45},
-    'surubim': {'filhote': 10, 'adulto': 120}, 'pintado': {'filhote': 12, 'adulto': 130},
-    'cachara': {'filhote': 11, 'adulto': 125}, 'tucunare': {'filhote': 8, 'adulto': 90},
-    'piau': {'filhote': 4, 'adulto': 40}
+    # --- PECUÁRIA ---
+    'nelore': {'filhote': 1200, 'adulto': 3850, 'img': 'nelore.png'},
+    'angus': {'filhote': 1500, 'adulto': 4400, 'img': 'angus.png'},
+    'girolando': {'filhote': 1300, 'adulto': 4180, 'img': 'girolando.png'},
+    'guzera': {'filhote': 1400, 'adulto': 4000, 'img': 'guzera.png'},
+    'brahman': {'filhote': 1600, 'adulto': 4500, 'img': 'brahman.png'},
+    'cavalo': {'filhote': 2500, 'adulto': 8000, 'img': 'cavalo.png'},
+    'porco': {'filhote': 350, 'adulto': 990, 'img': 'porco.png'},
+    'ovelha': {'filhote': 400, 'adulto': 1100, 'img': 'ovelha.png'},
+    'cabra': {'filhote': 380, 'adulto': 1050, 'img': 'cabra.png'},
+    'galinha': {'filhote': 25, 'adulto': 60, 'img': 'galinha.png'},
+    'pato': {'filhote': 30, 'adulto': 75, 'img': 'pato.png'},
+    'peru': {'filhote': 45, 'adulto': 110, 'img': 'peru.png'},
+    
+    # --- PEIXES (LOTE 3) ---
+    'tambaqui': {'filhote': 8, 'adulto': 60, 'img': 'tambaqui.png'},
+    'pirarucu': {'filhote': 60, 'adulto': 400, 'img': 'pirarucu.png'},
+    'pacu': {'filhote': 6, 'adulto': 55, 'img': 'pacu.png'},
+    'matrinxa': {'filhote': 10, 'adulto': 80, 'img': 'matrinxa.png'},
+    'jaraqui': {'filhote': 3, 'adulto': 35, 'img': 'jaraqui.png'},
+    'curimata': {'filhote': 3, 'adulto': 45, 'img': 'curimata.png'},
+    'surubim': {'filhote': 12, 'adulto': 130, 'img': 'surubim.png'},
+    'pintado': {'filhote': 15, 'adulto': 150, 'img': 'pintado.png'},
+    'cachara': {'filhote': 14, 'adulto': 140, 'img': 'cachara.png'},
+    'tucunare': {'filhote': 10, 'adulto': 95, 'img': 'tucunare.png'},
+    'piau': {'filhote': 5, 'adulto': 45, 'img': 'piau.png'}
 }
+
 
 PRECO_ARROBA = 295.0
 
@@ -152,6 +167,13 @@ class Fazenda(db.Model):
     nivel_silo = db.Column(db.Integer, default=1)
     nivel_armazem = db.Column(db.Integer, default=1)
     
+    cap_curral = db.Column(db.Integer, default=10) # Capacidade inicial de 10 cabeças
+    nivel_curral = db.Column(db.Integer, default=1)
+    
+    tem_represa_geral = db.Column(db.Boolean, default=False)
+    tem_chiqueiro = db.Column(db.Boolean, default=False) # ADICIONADO
+    tem_galinheiro = db.Column(db.Boolean, default=False) # ADICIONADO
+    
 class Lote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fazenda_id = db.Column(db.Integer, db.ForeignKey('fazenda.id'))
@@ -160,7 +182,13 @@ class Lote(db.Model):
     cultivo = db.Column(db.String(20)); meses_cultivo = db.Column(db.Integer, default=0)
     cerca = db.Column(db.String(20), default="nenhuma"); cocho = db.Column(db.String(20), default="nenhum"); agua = db.Column(db.String(20), default="nenhuma") 
     animais = db.relationship('Animal', backref='lote', lazy=True)
-
+    def para_dict(self):
+        return {
+            'id': self.id,
+            'nome': self.nome,
+            'status': self.status if self.status else 'mato'
+        }     
+    
 class Animal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     lote_id = db.Column(db.Integer, db.ForeignKey('lote.id'))
@@ -193,8 +221,16 @@ def criar_mundo():
 # --- ROTAS ---
 @app.route('/')
 def index():
-    if 'user_id' not in session: return redirect('/login')
-    return render_template('mapa_global.html', user=db.session.get(Usuario, session['user_id']))
+    if 'user_id' not in session: 
+        return redirect('/login')
+    
+    # BUSCA O USUÁRIO LOGADO (Essencial para o novo mapa)
+    usuario = db.session.get(Usuario, session['user_id'])
+    
+    if not usuario:
+        return redirect('/login')
+        
+    return render_template('mapa_global.html', user=usuario)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -457,6 +493,21 @@ def renomear(tipo, id):
     db.session.commit()
     return jsonify({'sucesso': True})
 
+@app.route('/api/fazenda/expandir_curral', methods=['POST'])
+def expandir_curral():
+    u = db.session.get(Usuario, session['user_id'])
+    f = u.fazendas[0]
+    custo = 5000 * f.nivel_curral
+    
+    if u.dinheiro >= custo:
+        u.dinheiro -= custo
+        f.cap_curral += 5
+        f.nivel_curral += 1
+        registrar_transacao(u, f"Expansão Curral Nível {f.nivel_curral}", -custo, "infra")
+        db.session.commit()
+        return jsonify({'sucesso': True, 'msg': f'Curral expandido para {f.cap_curral} cabeças!'})
+    return jsonify({'sucesso': False, 'erro': 'Saldo insuficiente!'})
+
 @app.route('/api/avancar_tempo', methods=['POST'])
 def avancar():
     u = db.session.get(Usuario, session['user_id']); u.hora += 1
@@ -467,65 +518,131 @@ def avancar():
 # --- MERCADO ATUALIZADO COM IA ---
 @app.route('/mercado')
 def ver_mercado():
-    if 'user_id' not in session: return redirect('/login')
+    if 'user_id' not in session: 
+        return redirect('/login')
     
     anuncios_players = Anuncio.query.all()
     
-    # Vendedores Oficiais (IA)
-    vendedores_ia = []
-    racas_ia = ['nelore', 'angus', 'girolando', 'porco', 'ovelha']
+    # BUSCA O USUÁRIO LOGADO
+    usuario = db.session.get(Usuario, session['user_id'])
     
-    for raca in racas_ia:
+    # Vendedores Oficiais (IA) - Agora pegando as chaves da TABELA_PRECOS
+    vendedores_ia = []
+    
+    # O segredo é percorrer todas as chaves da sua tabela de preços
+    for raca in TABELA_PRECOS.keys():
+        # Preço base adulto com a margem de 10% da IA
         preco_base = TABELA_PRECOS[raca]['adulto']
+        
         vendedores_ia.append({
             'id_ia': raca,
             'vendedor_nome': "🚚 Fornecedor Oficial",
             'raca': raca.capitalize(),
-            'peso': 15.0,
-            'fase': 'adulto',
             'valor': preco_base * 1.1 
         })
         
     return render_template('mercado.html', 
                            anuncios=anuncios_players, 
                            anuncios_ia=vendedores_ia,
-                           user=db.session.get(Usuario, session['user_id']))
+                           TABELA_PRECOS=TABELA_PRECOS,  # ESSENCIAL: Envia para o JS atualizar preços
+                           user=usuario)
 
-@app.route('/api/mercado/comprar_ia/<string:raca>', methods=['POST'])
-def comprar_animal_ia(raca):
-    if 'user_id' not in session: return jsonify({'erro': 'Login necessário'})
+@app.route('/api/mercado/comprar_v2', methods=['POST'])
+def comprar_v2():
+    u = db.session.get(Usuario, session['user_id'])
+    dados = request.get_json()
     
-    comprador = db.session.get(Usuario, session['user_id'])
-    raca_key = raca.lower()
-    preco = TABELA_PRECOS[raca_key]['adulto'] * 1.1
+    id_fazenda = dados.get('fazenda_id')
+    local_destino = dados.get('local', 'curral').lower()
+    especie_id = dados.get('id', '').lower()
+    qtd = int(dados.get('qtd', 1))
     
-    if comprador.dinheiro < preco:
-        return jsonify({'erro': 'Saldo insuficiente'})
+    # Captura a fase e o sexo enviados pelo JavaScript
+    fase_escolhida = dados.get('fase', 'Bezerro').capitalize()
+    sexo_escolhido = dados.get('sexo', 'M')
     
-    try:
-        comprador.dinheiro -= preco
-        # Pega a primeira fazenda e o primeiro lote disponível
-        pasto_destino = comprador.fazendas[0].lotes[0]
+    fazenda = next((f for f in u.fazendas if f.id == id_fazenda), u.fazendas[0])
+
+    # --- 1. BLOQUEIOS DE SEGURANÇA (MANTIDOS) ---
+    so_curral = ['nelore', 'angus', 'brahman', 'girolando', 'guzera', 'cavalo', 'ovelha', 'cabra']
+    peixes = ['tambaqui', 'pirarucu', 'pacu', 'matrinxa', 'jaraqui', 'curimata', 'surubim', 'pintado', 'cachara', 'tucunare', 'piau']
+
+    if especie_id in so_curral and local_destino != 'curral':
+        return jsonify({'sucesso': False, 'erro': 'Bovinos e Equinos devem ser entregues no Curral!'})
+    if especie_id in peixes and local_destino != 'represa':
+        return jsonify({'sucesso': False, 'erro': 'Peixes devem ser entregues diretamente na Represa!'})
+    if especie_id == 'porco' and local_destino != 'chiqueiro':
+        return jsonify({'sucesso': False, 'erro': 'Suínos devem ser entregues no Chiqueiro!'})
+    if especie_id == 'galinha' and local_destino != 'galinheiro':
+        return jsonify({'sucesso': False, 'erro': 'Aves devem ser entregues no Galinheiro!'})
+
+    # --- 2. VALIDAÇÃO DE OBRAS (MANTIDO) ---
+    if local_destino == 'represa' and not getattr(fazenda, 'tem_represa_geral', False):
+        return jsonify({'sucesso': False, 'erro': 'A Represa ainda não foi construída!'})
+    if local_destino == 'chiqueiro' and not getattr(fazenda, 'tem_chiqueiro', False):
+        return jsonify({'sucesso': False, 'erro': 'O Chiqueiro ainda não foi construído!'})
+    if local_destino == 'galinheiro' and not getattr(fazenda, 'tem_galinheiro', False):
+        return jsonify({'sucesso': False, 'erro': 'O Galinheiro ainda não foi construído!'})
+
+    # --- 3. FINANCEIRO E PREÇOS (AJUSTADO) ---
+    # Agora tentamos pegar o preço exato que veio da tela do mercado
+    custo_unitario = dados.get('preco')
+    
+    # Se o preço não veio no pacote (segurança), usamos a tabela fixa
+    if not custo_unitario:
+        info_animal = TABELA_PRECOS.get(especie_id, {'adulto': 1000})
+        # Se for filhote/bezerro, tenta pegar o preço de filhote da tabela
+        chave = 'filhote' if fase_escolhida.lower() in ['filhote', 'bezerro'] else 'adulto'
+        custo_unitario = info_animal.get(chave, info_animal['adulto'])
+
+    custo_total = custo_unitario * qtd
+
+    if u.dinheiro < custo_total:
+        return jsonify({'sucesso': False, 'erro': f'Saldo insuficiente! Necessário R$ {custo_total}'})
+
+    # --- NOVA TRAVA DE LOTAÇÃO DO TRONCO (MANTIDO) ---
+    if local_destino == 'curral':
+        animais_no_curral = Animal.query.join(Lote).filter(
+            Lote.fazenda_id == fazenda.id, 
+            Animal.onde_esta == 'curral'
+        ).count()
+        capacidade_maxima = getattr(fazenda, 'cap_curral', 10)
         
+        if animais_no_curral + qtd > capacidade_maxima:
+            return jsonify({
+                'sucesso': False, 
+                'erro': f'Tronco Lotado! Espaço: {animais_no_curral}/{capacidade_maxima}.'
+            })
+
+    # --- EXECUÇÃO DA COMPRA ---
+    u.dinheiro -= custo_total
+    # Incluímos a fase na descrição para o histórico ficar correto
+    registrar_transacao(u, f"Compra Mercado: {qtd}x {especie_id.capitalize()} ({fase_escolhida})", -custo_total, "compra")
+
+    # --- 4. CRIAÇÃO DOS ANIMAIS (AJUSTADO) ---
+    for _ in range(qtd):
+        # Peso realista: Adulto 18@, Filhote 12@
+        peso_inicial = 18.0 if fase_escolhida.lower() == 'adulto' else 12.0
+
         novo_animal = Animal(
-            lote_id=pasto_destino.id,
-            raca=raca.capitalize(),
-            sexo='M',
-            fase='adulto',
-            peso=15.0,
-            idade_meses=24,
-            onde_esta='curral', # Todo animal comprado vai para o curral
-            origem="Fornecedor Oficial"
+            lote_id=fazenda.lotes[0].id, 
+            raca=especie_id.capitalize(), 
+            sexo=sexo_escolhido, 
+            fase=fase_escolhida, # Usa a fase vinda do mercado
+            peso=peso_inicial, 
+            onde_esta=local_destino,
+            origem="Mercado Logístico"
         )
-        
         db.session.add(novo_animal)
-        registrar_transacao(comprador, f"Compra IA: {raca}", -preco, "mercado")
-        db.session.commit()
-        return jsonify({'sucesso': True})
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'erro': str(e)})
-            
+    
+    db.session.commit()
+    
+    return jsonify({
+        'sucesso': True, 
+        'msg': f'R$ {custo_total} pagos! Carga de {fase_escolhida} entregue!',
+        'destino': local_destino.upper()
+    })
+    
 @app.route('/api/mercado/vender', methods=['POST'])
 def vender_animal():
     u = db.session.get(Usuario, session['user_id']); d = request.json
@@ -554,33 +671,23 @@ def vender_animal():
     
     db.session.commit()
     return jsonify({'sucesso':True})
+        
+@app.route('/api/mercado/cancelar', methods=['POST'])
+def cancelar_venda_definitivo():
+    u = db.session.get(Usuario, session['user_id'])
+    dados = request.get_json()
+    # Usa o ID que vem do JavaScript para identificar o anúncio
+    aid = dados.get('anuncio_id') 
 
-@app.route('/api/mercado/comprar/<int:aid>', methods=['POST'])
-def comprar_animal(aid):
-    comprador = db.session.get(Usuario, session['user_id']); anuncio = db.session.get(Anuncio, aid)
-    if not anuncio: return jsonify({'erro':'Anúncio inexistente'})
-    if comprador.dinheiro < anuncio.valor: return jsonify({'erro':'Saldo insuficiente'})
-    
-    vendedor = anuncio.vendedor; animal = anuncio.animal
-    comprador.dinheiro -= anuncio.valor; vendedor.dinheiro += anuncio.valor
-    
-    # Destina o animal para a fazenda do comprador, mas mantém no CURRAL
-    pasto_destino = comprador.fazendas[0].lotes[0] 
-    animal.lote_id = pasto_destino.id 
-    animal.onde_esta = 'curral'  # Agora o animal chega pelo curral corretamente!
-    
-    db.session.delete(anuncio)
-    registrar_transacao(comprador, f"Comprou {animal.raca}", -anuncio.valor, "mercado")
-    registrar_transacao(vendedor, f"Vendeu {animal.raca}", anuncio.valor, "mercado")
-    db.session.commit(); return jsonify({'sucesso':True})
-
-@app.route('/api/mercado/cancelar/<int:aid>', methods=['POST'])
-def cancelar_anuncio(aid):
-    u = db.session.get(Usuario, session['user_id']); anuncio = db.session.get(Anuncio, aid)
-    if anuncio.vendedor_id == u.id:
-        anuncio.animal.onde_esta = 'pasto'; db.session.delete(anuncio); db.session.commit()
-        return jsonify({'sucesso':True})
-    return jsonify({'erro':'Erro'})
+    anuncio = Anuncio.query.get(aid)
+    if anuncio and anuncio.vendedor_id == u.id:
+        # Se o animal existir, devolvemos ele para o estado normal
+        if anuncio.animal:
+            anuncio.animal.onde_esta = 'curral'
+        db.session.delete(anuncio)
+        db.session.commit()
+        return jsonify({'sucesso': True})
+    return jsonify({'sucesso': False, 'erro': 'Não autorizado'})
 
 @app.route('/expandir_silo')
 def expandir_silo():
@@ -731,41 +838,73 @@ def recusar_amizade(id):
     return redirect(request.referrer or url_for('index'))
     
 # --- NOVAS ROTAS DE MANEJO DO CURRAL ---
-@app.route('/api/animal/vacinar/<int:animal_id>', methods=['POST'])
-def vacinar_animal(animal_id):
-    if 'user_id' not in session: 
-        return jsonify({'sucesso': False, 'erro': 'Login necessário'})
-    
-    usuario = db.session.get(Usuario, session['user_id'])
-    fazenda = Fazenda.query.filter_by(dono_id=usuario.id).first()
-    animal = db.session.get(Animal, animal_id)
+@app.route('/api/animal/manejo_curral', methods=['POST'])
+def manejo_curral():
+    if 'user_id' not in session: return jsonify({'erro': 'Login necessário'})
+    u = db.session.get(Usuario, session['user_id'])
+    f = u.fazendas[0]
+    dados = request.json
+    animal = db.session.get(Animal, dados.get('animal_id'))
+    acao = dados.get('acao') 
 
-    # 1. SEGURANÇA: Verifica se o animal existe antes de mexer nele
-    if not animal:
-        return jsonify({'sucesso': False, 'erro': 'Animal não encontrado!'})
+    if not animal: return jsonify({'erro': 'Animal não encontrado!'})
 
-    # 2. REALISMO: Verifica se o animal já está vacinado (para não gastar dose à toa)
-    if animal.vacinado:
-        return jsonify({'sucesso': False, 'erro': 'Este animal já foi vacinado!'})
-
-    # 3. CONSUMO: Verifica o estoque (Ajuste para est_medicamento se você resetou o banco)
-    # Se você ainda não resetou o banco, continue usando est_veneno
-    if fazenda.est_veneno < 1: 
-        return jsonify({'sucesso': False, 'erro': 'Falta medicamento no armazém! Vá até a loja.'})
-
-    try:
+    if acao == 'aftosa':
+        if animal.vacinado: return jsonify({'erro': 'Já vacinado!'})
+        if f.est_vacina_aftosa < 1: return jsonify({'erro': 'Sem Vacina Aftosa!'})
+        f.est_vacina_aftosa -= 1
         animal.vacinado = True
-        fazenda.est_veneno -= 1  # Gasta o item do seu Armazém
+        msg = "💉 Vacina Aftosa aplicada!"
+
+    elif acao == 'brucelose':
+        if f.est_vacina_brucelose < 1: return jsonify({'erro': 'Sem Vacina Brucelose!'})
+        f.est_vacina_brucelose -= 1
+        msg = "💉 Vacina Brucelose aplicada!"
+
+    elif acao == 'suplemento':
+        if f.est_suplemento_engorda < 1: return jsonify({'erro': 'Sem Suplemento!'})
+        f.est_suplemento_engorda -= 1
+        animal.peso += 0.5 # Realismo: Ganho de peso pelo manejo
+        msg = "🌽 Suplemento aplicado! +0.5@"
+
+    db.session.commit()
+    return jsonify({'sucesso': True, 'msg': msg})
+
+@app.route('/api/animal/vender_frigorifico', methods=['POST'])
+def vender_frigorifico():
+    if 'user_id' not in session: 
+        return jsonify({'sucesso': False, 'erro': 'Sessão expirada'})
+    
+    # Busca o usuário e o animal
+    u = db.session.get(Usuario, session['user_id'])
+    animal_id = request.json.get('id')
+    animal = db.session.get(Animal, animal_id)
+    
+    if not animal:
+        return jsonify({'sucesso': False, 'erro': 'Animal não encontrado no curral!'})
+    
+    # LÓGICA DE REALISMO: Preço baseado no peso atual (engorda valendo a pena!)
+    preco_arroba = 285.00 # Você pode mudar esse valor conforme o mercado
+    valor_venda = animal.peso * preco_arroba
+    
+    try:
+        # Adiciona o dinheiro ao usuário
+        u.dinheiro += valor_venda
+        
+        # Opcional: Registrar no seu histórico financeiro se você tiver essa função
+        # registrar_transacao(u, f"Venda Frigorífico: {animal.raca}", valor_venda, "venda")
+        
+        # Remove o animal do banco de dados (ele foi pro abate/venda)
+        db.session.delete(animal)
         db.session.commit()
         
-        # Retorna 'msg' para o seu sede.js ler corretamente
         return jsonify({
             'sucesso': True, 
-            'msg': f'Animal {animal.id} vacinado com sucesso! 1 dose consumida.'
+            'msg': f'Vendido com sucesso! R$ {valor_venda:,.2f} adicionados à conta.'
         })
     except Exception as e:
         db.session.rollback()
-        return jsonify({'sucesso': False, 'erro': f'Erro no banco: {str(e)}'})
+        return jsonify({'sucesso': False, 'erro': f'Erro ao processar venda: {str(e)}'})
 
 @app.route('/api/animal/mover', methods=['POST'])
 def mover_animal_novo():
@@ -852,8 +991,143 @@ def vender_insumo():
             return jsonify({'sucesso': True, 'msg': 'Venda realizada!'})
     return jsonify({'sucesso': False, 'erro': 'Erro no estoque'})
 
-# --- ADICIONE ISSO PARA MATAR O FANTASMA NO PYTHON ---
+@app.route('/api/animal/vender_lote_curral', methods=['POST'])
+def vender_lote_curral():
+    u = db.session.get(Usuario, session['user_id'])
+    dados = request.get_json()
+    raca_alvo = dados.get('raca')
+    quantidade = int(dados.get('quantidade', 1))
+    fazenda_id = dados.get('fazenda_id')
 
+    # Busca animais daquela raça que estão especificamente no curral dessa fazenda
+    animais = Animal.query.join(Lote).filter(
+        Lote.fazenda_id == fazenda_id,
+        Animal.raca == raca_alvo,
+        Animal.onde_esta == 'curral'
+    ).limit(quantidade).all()
+
+    if len(animais) < quantidade:
+        return jsonify({'sucesso': False, 'erro': f'Você só possui {len(animais)} animais desta raça no curral.'})
+
+    valor_total = 0
+    for a in animais:
+        valor_venda = a.peso * 285.00 # Preço fixo do frigorífico
+        valor_total += valor_venda
+        db.session.delete(a)
+
+    u.dinheiro += valor_total
+    registrar_transacao(u, f"Venda Lote Curral: {quantidade}x {raca_alvo}", valor_total, "venda")
+    db.session.commit()
+
+    return jsonify({'sucesso': True, 'msg': f'Lote vendido! R$ {valor_total:,.2f} creditados.'})
+
+@app.route('/api/mercado/anunciar', methods=['POST'])
+def anunciar_leilao():
+    if 'user_id' not in session:
+        return jsonify({'sucesso': False, 'erro': 'Sessão expirada'})
+    
+    u = db.session.get(Usuario, session['user_id'])
+    dados = request.get_json()
+    
+    # Capturamos todos os dados enviados pelo JavaScript
+    animal_id = dados.get('animal_id') # Pode ser o ID real ou 0 para Lote
+    raca = dados.get('raca')
+    preco = float(dados.get('preco', 0))
+    quantidade = int(dados.get('quantidade', 1))
+    
+    # Identificamos a fazenda ativa (usando a primeira do usuário por padrão)
+    fazenda_id = u.fazendas[0].id
+
+    # --- LÓGICA DE SELEÇÃO DE ANIMAIS ---
+    if animal_id and animal_id != 0:
+        # VENDA INDIVIDUAL: Busca o animal específico pelo ID
+        animal_alvo = Animal.query.get(animal_id)
+        if not animal_alvo or animal_alvo.onde_esta != 'curral':
+            return jsonify({'sucesso': False, 'erro': 'Animal não encontrado no tronco!'})
+        animais_disponiveis = [animal_alvo]
+        quantidade = 1 # Força quantidade 1 para venda individual
+    else:
+        # VENDA EM LOTE: Busca pela raça dentro do curral da fazenda
+        animais_disponiveis = Animal.query.join(Lote).filter(
+            Lote.fazenda_id == fazenda_id,
+            Animal.raca == raca.capitalize() if raca else None,
+            Animal.onde_esta == 'curral'
+        ).limit(quantidade).all()
+    
+    # --- VALIDAÇÕES ---
+    if len(animais_disponiveis) < quantidade:
+        return jsonify({'sucesso': False, 'erro': f'Quantidade insuficiente! Você só tem {len(animais_disponiveis)} disponíveis.'})
+    
+    if preco <= 0:
+        return jsonify({'sucesso': False, 'erro': 'O preço deve ser maior que zero!'})
+
+    # --- EXECUÇÃO DO ANÚNCIO ---
+    try:
+        for animal in animais_disponiveis:
+            animal.onde_esta = 'venda' # Remove do curral para o estado de "venda"
+            novo_anuncio = Anuncio(
+                vendedor_id=u.id,
+                animal_id=animal.id,
+                valor=preco
+            )
+            db.session.add(novo_anuncio)
+        
+        db.session.commit()
+        return jsonify({'sucesso': True, 'msg': f'{len(animais_disponiveis)}x {raca} anunciados no Mercado Global!'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'sucesso': False, 'erro': f'Erro no banco: {str(e)}'})
+
+@app.route('/api/mercado/comprar_leilao', methods=['POST'])
+def comprar_leilao():
+    if 'user_id' not in session:
+        return jsonify({'sucesso': False, 'erro': 'Sessão expirada'})
+    
+    comprador = db.session.get(Usuario, session['user_id'])
+    dados = request.get_json()
+    
+    anuncio_id = dados.get('anuncio_id')
+    qtd_desejada = int(dados.get('quantidade', 1))
+    id_fazenda_destino = dados.get('fazenda_id') # Recebe a fazenda escolhida no modal
+
+    # 1. Busca o anúncio e valida se ainda existe
+    anuncio = Anuncio.query.get(anuncio_id)
+    if not anuncio or getattr(anuncio, 'vendido', False):
+        return jsonify({'sucesso': False, 'erro': 'Este animal já foi vendido ou o anúncio expirou.'})
+
+    vendedor = db.session.get(Usuario, anuncio.vendedor_id)
+    valor_total = anuncio.valor * qtd_desejada
+
+    # 2. Valida o saldo do comprador
+    if comprador.dinheiro < valor_total:
+        return jsonify({'sucesso': False, 'erro': f'Saldo insuficiente! Você precisa de R$ {valor_total:,.2f}'})
+
+    # 3. TRANSFERÊNCIA FINANCEIRA
+    comprador.dinheiro -= valor_total
+    vendedor.dinheiro += valor_total
+
+    # 4. REGISTRO NO FINANCEIRO (Para aparecer no Fluxo de Caixa)
+    registrar_transacao(comprador, f"Compra Leilão: {anuncio.animal.raca}", -valor_total, "compra")
+    registrar_transacao(vendedor, f"Venda Leilão: {anuncio.animal.raca}", valor_total, "venda")
+
+    # 5. TRANSFERÊNCIA DO ANIMAL PARA O COMPRADOR
+    # Busca o primeiro lote da fazenda que o comprador escolheu
+    fazenda_destino = next((f for f in comprador.fazendas if f.id == id_fazenda_destino), comprador.fazendas[0])
+    
+    animal = anuncio.animal
+    animal.lote_id = fazenda_destino.lotes[0].id # Muda o dono do animal
+    animal.onde_esta = 'curral' # Coloca o animal no curral do novo dono
+    
+    # Marca o anúncio como vendido para ele sumir do mercado
+    db.session.delete(anuncio) 
+    
+    db.session.commit()
+    return jsonify({
+        'sucesso': True, 
+        'msg': f'Sucesso! R$ {valor_total:,.2f} pagos. O animal já está no seu curral!'
+    })
+
+# --- ADICIONE ISSO PARA MATAR O FANTASMA NO PYTHON ---
 @app.after_request
 def add_header(response):
     # Proíbe o navegador de guardar versões antigas da página (mata o fantasma)

@@ -38,9 +38,59 @@
             </button>
         </div>
     </div>
+    
+    <div class="card">
+    <div style="text-align: center; padding: 20px;">
+        <img src="/static/img/represa.png" style="height: 65px; object-fit: contain; margin-bottom: 10px;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2316/2316668.png'">
+        <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Piscicultura</p>
+        
+        {% if fazenda.tem_represa_geral %}
+            <button onclick="abrirModal('modal-represa')" style="width: 100%; background: #0288d1; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; box-shadow: 0 4px 0 #01579b;">
+                ABRIR REPRESA 🐟
+            </button>
+        {% else %}
+            <button onclick="prepararConstrucao('represa')" style="width: 100%; background: #757575; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; box-shadow: 0 4px 0 #424242;">
+                CONSTRUIR REPRESA (R$ 12.000)
+            </button>
+        {% endif %}
+    </div>
+</div>
+
+    <div class="card">
+    <div style="text-align: center; padding: 20px;">
+        <img src="/static/img/chiqueiro.png" style="height: 65px; object-fit: contain; margin-bottom: 10px;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2316/2316668.png'">
+        <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Chiqueiro</p>
+        {% if fazenda.tem_chiqueiro %}
+            <button onclick="abrirModal('modal-chiqueiro')" style="width: 100%; background: #e91e63; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; box-shadow: 0 4px 0 #ad1457;">
+                ABRIR CHIQUEIRO
+            </button>
+        {% else %}
+            <button onclick="prepararConstrucao('chiqueiro')" style="width: 100%; background: #757575; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; box-shadow: 0 4px 0 #424242;">
+                CONSTRUIR (R$ 8.000)
+            </button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div style="text-align: center; padding: 20px;">
+        <img src="/static/img/galinheiro.png" style="height: 65px; object-fit: contain; margin-bottom: 10px;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2316/2316668.png'">
+        <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Galinheiro</p>
+        {% if fazenda.tem_galinheiro %}
+            <button onclick="abrirModal('modal-galinheiro')" style="width: 100%; background: #ff9800; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; box-shadow: 0 4px 0 #e65100;">
+                ABRIR GALINHEIRO
+            </button>
+        {% else %}
+            <button onclick="prepararConstrucao('galinheiro')" style="width: 100%; background: #757575; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; box-shadow: 0 4px 0 #424242;">
+                CONSTRUIR (R$ 5.000)
+            </button>
+        {% endif %}
+    </div>
+</div>
+    
     <div class="card">
         <div style="text-align: center; padding: 20px;">
-            <div style="font-size: 50px; margin-bottom: 10px;">👥</div>
+            <img src="/static/img/comunidade.png" style="height: 65px; object-fit: contain; margin-bottom: 10px;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2316/2316668.png'">
             <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Comunidade</p>
             
             <button id="btn-social-alerta" onclick="abrirModal('modal-social')" 
@@ -51,7 +101,7 @@
         </div>
     </div>
 
-</div> 
+</div>
 <div id="modal-social" class="modal-fundo" onclick="fecharSeClicarFora(event, 'modal-social')">
     <div class="modal-janela">
         <span class="fechar-btn" onclick="fecharModal('modal-social')">&times;</span>
